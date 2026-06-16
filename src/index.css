@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --app-bg: #F5F5F5; /* Gris très clair (fond page) */
+  --app-bg-soft: #EBF3FA; /* Bleu très clair (fond) */
+  --app-surface: #FFFFFF; /* Blanc */
+  --app-border: #E0E0E0; /* Gris clair (bordures) */
+  --app-text: #1e2020; /* Gris foncé (texte principal) */
+  --app-text-soft: #666666; /* Gris moyen (texte secondaire) */
+  --app-primary: #2A5C8E; /* Bleu principal */
+  --app-primary-hover: #4A7FAF; /* Bleu clair */
+  --app-success: #2E7D32; /* Vert succès */
+  --app-success-bg: #E8F5E9; /* Vert clair */
+  --app-danger: #EF4444; /* Rouge erreur */
+  --app-warning: #F59E0B; /* Orange warning */
+  --app-indicator: #22C55E; /* Vert indicateur */
+  --app-muted: #999999;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-soft) 100%);
+  color: var(--app-text);
+  font-family: 'Segoe UI', 'Noto Sans', sans-serif;
+}
+
+.bg-app-surface {
+  background-color: var(--app-surface);
+}
+
+.bg-app-surface-soft {
+  background-color: var(--app-bg-soft);
+}
+
+.text-app-text {
+  color: var(--app-text);
+}
+
+.text-app-text-soft {
+  color: var(--app-text-soft);
+}
+
+.border-app {
+  border-color: var(--app-border);
+}
+
+.bg-app-primary {
+  background-color: var(--app-primary);
+}
+
+.text-app-primary {
+  color: var(--app-primary);
+}
+
+.bg-app-muted {
+  background-color: var(--app-muted);
+}
+
+.bg-success-soft {
+  background-color: rgba(76, 175, 80, 0.12);
+}
+
+.text-success {
+  color: var(--app-success);
+}
+
+.text-danger {
+  color: var(--app-danger);
+}
+
+.border-soft {
+  border-color: var(--app-border);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input,
+textarea,
+select,
+button {
+  max-width: 100%;
+  min-width: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+th,
+td {
+  min-width: 0;
+  text-align: left;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===========================================
+   3D EFFECTS AND ANIMATIONS
+   =========================================== */
+
+@keyframes cubeSpin {
+  from { transform: rotateX(22deg) rotateY(0deg); }
+  to   { transform: rotateX(22deg) rotateY(360deg); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse3d {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-fadeInUp { animation: fadeInUp 0.55s ease both; }
+.animate-fadeIn   { animation: fadeIn   0.4s ease both; }
+.animate-pulse-3d { animation: pulse3d 2s ease-in-out infinite; }
+
+/* 3D Card Effects */
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.2s ease;
+}
+
+.card-3d:hover {
+  transform: rotateY(2deg) rotateX(-1deg);
+}
+
+/* Button 3D Effects */
+.btn-3d {
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(42, 92, 142, 0.15);
+}
+
+.btn-3d:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(42, 92, 142, 0.25);
+}
+
+.btn-3d:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(42, 92, 142, 0.15);
+}
+
+/* Logo Cube 3D */
+.logo-cube {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  perspective: 72px;
+}
+
+.logo-cube div {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(42, 92, 142, 0.65);
+  background: rgba(42, 92, 142, 0.15);
+  transform-style: preserve-3d;
+  animation: cubeSpin 12s linear infinite;
+  transform: rotateX(22deg) rotateY(0deg);
+}
+
+.logo-cube .face-front  { transform: translateZ(18px); background: rgba(42, 92, 142, 0.25); }
+.logo-cube .face-back   { transform: rotateY(180deg) translateZ(18px); background: rgba(42, 92, 142, 0.1); }
+.logo-cube .face-left   { transform: rotateY(-90deg) translateZ(18px); background: rgba(42, 92, 142, 0.15); }
+.logo-cube .face-right  { transform: rotateY(90deg) translateZ(18px); background: rgba(42, 92, 142, 0.15); }
+.logo-cube .face-top    { transform: rotateX(90deg) translateZ(18px); background: rgba(42, 92, 142, 0.2); }
+.logo-cube .face-bottom { transform: rotateX(-90deg) translateZ(18px); background: rgba(42, 92, 142, 0.08); }

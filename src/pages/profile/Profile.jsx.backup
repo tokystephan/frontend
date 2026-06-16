@@ -1,0 +1,85 @@
+import { useAppSelector } from '../../store/hooks'
+import { ROLE_LABELS } from '../../utils/constants'
+import { getFullName } from '../../utils/helpers'
+import { Link } from 'react-router-dom'
+
+const Profile = () => {
+  const user = useAppSelector((state) => state.auth.user)
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14a4 4 0 21 0 010-8h8m-8 8v6m0 0l-3-3m3 3l3-3" />
+          </svg>
+          Mon profil
+        </h2>
+
+        <Link
+          to="/dashboard"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 shadow-sm"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Retour au Dashboard
+        </Link>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Nom complet */}
+        <div className="bg-slate-50 rounded-lg p-4 transition-all hover:bg-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Nom</p>
+          <p className="text-lg font-semibold text-slate-900">
+            {getFullName(user) || <span className="text-slate-400">Non renseigné</span>}
+          </p>
+        </div>
+
+        {/* Email */}
+        <div className="bg-slate-50 rounded-lg p-4 transition-all hover:bg-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</p>
+          <p className="text-lg font-semibold text-slate-900 break-all">
+            {user?.email || <span className="text-slate-400">Non renseigné</span>}
+          </p>
+        </div>
+
+        {/* Rôle */}
+        <div className="bg-slate-50 rounded-lg p-4 transition-all hover:bg-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Rôle</p>
+          <p className="text-lg font-semibold text-slate-900">
+            {ROLE_LABELS[user?.role?.name] || user?.role?.name || <span className="text-slate-400">Non attribué</span>}
+          </p>
+        </div>
+
+        {/* Département */}
+        <div className="bg-slate-50 rounded-lg p-4 transition-all hover:bg-slate-100">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Département</p>
+          <p className="text-lg font-semibold text-slate-900">
+            {user?.department?.name || <span className="text-slate-400">Non assigné</span>}
+          </p>
+        </div>
+      </div>
+
+      {/* Informations complémentaires (optionnel) */}
+      {user?.phone && (
+        <div className="bg-slate-50 rounded-lg p-4">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Téléphone</p>
+          <p className="text-lg font-semibold text-slate-900">{user.phone}</p>
+        </div>
+      )}
+
+      {user?.created_at && (
+        <div className="bg-slate-50 rounded-lg p-4">
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Compte créé le</p>
+          <p className="text-lg font-semibold text-slate-900">
+            {new Date(user.created_at).toLocaleDateString('fr-FR')}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default Profile
