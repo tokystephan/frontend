@@ -202,10 +202,7 @@ export default function Profile() {
               )}
             </div>
 
-            <p className="mt-4 text-sm text-gray-500">
-              Cliquez sur l'avatar pour le modifier (JPG, PNG, max 5MB)
-            </p>
-
+            
             {uploadError && (
               <div className="mt-3 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-sm text-red-600">{uploadError}</p>

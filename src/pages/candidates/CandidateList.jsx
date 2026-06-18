@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Home, Eye, Edit, Search, Users } from 'lucide-react';
+import { Home, Eye, Edit, Search, Users, Trash2, AlertTriangle, Loader } from 'lucide-react';
 import Pagination from '../../components/Common/Pagination';
 import SearchBar from '../../components/Common/SearchBar';
 import useDebounce from '../../hooks/useDebounce';
@@ -9,6 +9,7 @@ import usePermissions from '../../hooks/usePermissions';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchCandidates } from '../../store/slices/candidateSlice';
 import { DEFAULT_PAGE_SIZE, SOURCES, SOURCE_LABELS } from '../../utils/constants';
+import axios from '../../api/axiosConfig';
 
 const CandidateList = () => {
   const navigate = useNavigate();
@@ -20,6 +21,15 @@ const CandidateList = () => {
   const [source, setSource] = useState('');
   const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 250);
+
+  // ✅ AJOUT : État pour la modale de suppression
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    candidate: null,
+    loading: false,
+    forceDelete: false,
+    dependencies: []
+  });
 
   useEffect(() => {
     dispatch(
@@ -53,6 +63,78 @@ const CandidateList = () => {
   const handleSourceChange = (event) => {
     setSource(event.target.value);
     setPage(1);
+  };
+
+  // ✅ AJOUT : Ouvrir la modale de suppression
+  const openDeleteModal = (candidate) => {
+    setDeleteModal({
+      isOpen: true,
+      candidate: candidate,
+      loading: false,
+      forceDelete: false,
+      dependencies: []
+    });
+  };
+
+  // ✅ AJOUT : Fermer la modale
+  const closeDeleteModal = () => {
+    setDeleteModal({
+      isOpen: false,
+      candidate: null,
+      loading: false,
+      forceDelete: false,
+      dependencies: []
+    });
+  };
+
+  // ✅ AJOUT : Supprimer un candidat
+  const handleDelete = async () => {
+    const { candidate, forceDelete } = deleteModal;
+    
+    setDeleteModal(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const url = forceDelete 
+        ? `/admin/candidates/${candidate.id}/force`
+        : `/admin/candidates/${candidate.id}`;
+      
+      await axios.delete(url);
+      
+      toast.success(
+        `Candidat ${candidate.first_name} ${candidate.last_name} supprimé avec succès`
+      );
+      
+      closeDeleteModal();
+      
+      // Recharger la liste
+      dispatch(
+        fetchCandidates({
+          search: debouncedSearch || undefined,
+          source: source || undefined,
+        })
+      );
+      
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      
+      // Si erreur 422 = dépendances existantes
+      if (error.response?.status === 422) {
+        const deps = error.response?.data?.dependencies || [];
+        setDeleteModal(prev => ({
+          ...prev,
+          loading: false,
+          forceDelete: true,
+          dependencies: deps
+        }));
+        toast.error(
+          `⚠️ Ce candidat a des données associées: ${deps.join(', ')}. Utilisez la suppression forcée.`,
+          { duration: 5000 }
+        );
+      } else {
+        setDeleteModal(prev => ({ ...prev, loading: false }));
+        toast.error(error.response?.data?.message || 'Erreur lors de la suppression');
+      }
+    }
   };
 
   return (
@@ -184,7 +266,7 @@ const CandidateList = () => {
                       <th className="px-4 py-3">Email</th>
                       <th className="px-4 py-3">Téléphone</th>
                       <th className="px-4 py-3">Source</th>
-                      <th className="px-4 py-3">Actions</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -208,7 +290,7 @@ const CandidateList = () => {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => navigate(`/candidates/${row.id}`)}
                               className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition"
@@ -216,6 +298,7 @@ const CandidateList = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
+                            
                             {canManageCandidates && (
                               <button
                                 onClick={() => navigate(`/candidates/${row.id}/edit`)}
@@ -223,6 +306,17 @@ const CandidateList = () => {
                                 title="Modifier"
                               >
                                 <Edit className="w-4 h-4" />
+                              </button>
+                            )}
+
+                            {/* ✅ BOUTON SUPPRIMER (Admin uniquement) */}
+                            {canManageCandidates && (
+                              <button
+                                onClick={() => openDeleteModal(row)}
+                                className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
+                                title="Supprimer"
+                              >
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             )}
                           </div>
@@ -249,6 +343,98 @@ const CandidateList = () => {
           <p className="mt-1">© 2026 Akanjo - Tous droits réservés</p>
         </div>
       </div>
+
+      {/* ==================== MODALE DE SUPPRESSION ==================== */}
+      {deleteModal.isOpen && deleteModal.candidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fadeIn">
+            
+            {/* En-tête */}
+            <div className="flex items-center gap-3 text-red-600 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg font-semibold">Confirmer la suppression</h2>
+            </div>
+            
+            {/* Message */}
+            <p className="text-gray-600 mb-2">
+              Êtes-vous sûr de vouloir supprimer le candidat ?
+            </p>
+            <p className="font-medium text-gray-900 text-lg mb-4">
+              {deleteModal.candidate.first_name} {deleteModal.candidate.last_name}
+            </p>
+            
+            {/* Informations du candidat */}
+            <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm text-gray-600 space-y-1">
+              <p><span className="font-medium">Email:</span> {deleteModal.candidate.email || 'Non renseigné'}</p>
+              <p><span className="font-medium">Téléphone:</span> {deleteModal.candidate.phone || 'Non renseigné'}</p>
+              <p><span className="font-medium">Source:</span> {SOURCE_LABELS[deleteModal.candidate.source] || deleteModal.candidate.source || 'N/A'}</p>
+            </div>
+            
+            {/* ⚠️ Avertissement dépendances */}
+            {deleteModal.forceDelete && deleteModal.dependencies.length > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-800 flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-600" />
+                  <span>
+                    <strong>⚠️ Attention :</strong> Ce candidat a des données associées :
+                    <ul className="list-disc list-inside mt-1 text-yellow-700">
+                      {deleteModal.dependencies.map((dep, index) => (
+                        <li key={index}>{dep}</li>
+                      ))}
+                    </ul>
+                    La <strong>suppression forcée</strong> supprimera également ces données.
+                  </span>
+                </p>
+              </div>
+            )}
+            
+            {/* Boutons */}
+            <div className="flex gap-3 justify-end mt-6">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteModal.loading}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              >
+                Annuler
+              </button>
+              
+              {deleteModal.forceDelete && deleteModal.dependencies.length > 0 && (
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteModal.loading}
+                  className="px-4 py-2 bg-red-700 text-white rounded-lg hover:bg-red-800 transition disabled:opacity-50 flex items-center gap-2"
+                >
+                  {deleteModal.loading ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Suppression...
+                    </>
+                  ) : (
+                    '🗑️ Supprimer tout'
+                  )}
+                </button>
+              )}
+              
+              <button
+                onClick={handleDelete}
+                disabled={deleteModal.loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleteModal.loading ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    Suppression...
+                  </>
+                ) : (
+                  '🗑️ Supprimer'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

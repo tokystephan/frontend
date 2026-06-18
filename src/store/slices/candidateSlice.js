@@ -102,17 +102,19 @@ export const deleteCandidateAction = createAsyncThunk(
   'candidates/delete',
   async (id, { rejectWithValue }) => {
     try {
-      console.log('🗑️ deleteCandidateAction - ID:', id)
+      console.log('🗑️ deleteCandidate - ID:', id)
       const response = await deleteCandidate(id)
-      console.log('✅ deleteCandidateAction - Succès')
+      console.log('✅ deleteCandidate - Succès')
       // ✅ Retourner l'ID et éventuellement le message
       return { id, message: response?.message || 'Candidat supprimé' }
     } catch (error) {
-      console.error('❌ deleteCandidateAction - Erreur:', error)
+      console.error('❌ deleteCandidate - Erreur:', error)
       return rejectWithValue(normalizeError(error))
     }
   }
 )
+
+
 
 // ✅ SLICE
 

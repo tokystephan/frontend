@@ -121,7 +121,7 @@ const permissions = {
     canManageUsers: false,
     canManagePosts: false,
     canManageCandidates: false,
-    canManageApplications: false,
+    canManageApplications: true,
     canViewStats: true,
     canArchivePosts: false,
     canChangeFinalStatus: true,
