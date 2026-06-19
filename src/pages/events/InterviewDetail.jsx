@@ -225,7 +225,7 @@ export default function InterviewDetail() {
         </div>
 
         {/* ==================== MES ACTIONS (Manager) ==================== */}
-        {(roleName === 'consultant' || roleName === 'manager') && statut === 'planifie' && (
+        {roleName === 'manager' && statut === 'planifie' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
               <h2 className="font-semibold text-gray-800">🎯 Mes actions</h2>

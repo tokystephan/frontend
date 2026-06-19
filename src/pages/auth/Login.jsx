@@ -317,7 +317,7 @@ export default function Login() {
     const code = errorData?.code;
     const action = errorData?.action;
     
-    // Cas spécial: pas de département assigné pour consultant/manager
+    // Cas spécial: pas de département assigné pour manager
     if (code === 'NO_DEPARTMENT_ASSIGNED' || message.includes('département')) {
       setDepartmentWarning({
         title: '⚠️ Configuration incomplète',
@@ -389,7 +389,7 @@ export default function Login() {
       let welcomeMessage = firstName ? `Bienvenue ${firstName} !` : 'Connexion réussie !';
       
       if (roleName === 'Consultant' && departmentName) {
-        welcomeMessage = `Bienvenue ${firstName} ! Vous êtes connecté en tant que Consultant du département "${departmentName}".`;
+        welcomeMessage = `Bienvenue ${firstName} ! Vous êtes connecté en tant que Manager du département "${departmentName}".`;
         toast.success(welcomeMessage, { duration: 4000 });
       } else if (roleName === 'Manager' && departmentName) {
         welcomeMessage = `Bienvenue ${firstName} ! Vous êtes connecté en tant que Manager du département "${departmentName}".`;

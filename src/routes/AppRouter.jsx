@@ -55,7 +55,13 @@ import UserManagement from '../pages/admin/UserManagement';
 const AppRouter = () => {
   const dispatch = useDispatch();
   const { initialized, isAuthenticated, user } = useSelector((state) => state.auth);
-  const { roleName, canManagePosts, canManageCandidates, canManageApplications } = usePermissions();
+  const {
+    roleName,
+    canManagePosts,
+    canManageCandidates,
+    canCreateApplication,
+    canEditApplication,
+  } = usePermissions();
 
   // Vérifier l'authentification au chargement
   useEffect(() => {
@@ -123,16 +129,9 @@ const AppRouter = () => {
         }
       />
 
-      {/* Consultant Dashboard */}
       <Route
         path="/dashboard/consultant"
-        element={
-          isAuthenticated && user?.role === 'consultant' ? (
-            <ConsultantDashboard />
-          ) : (
-            <Navigate to="/dashboard" replace />
-          )
-        }
+        element={<Navigate to="/dashboard/manager" replace />}
       />
 
       <Route
@@ -162,7 +161,7 @@ const AppRouter = () => {
       <Route
         path="/posts"
         element={
-          isAuthenticated && (canManagePosts || roleName === 'consultant' || roleName === 'manager' || roleName === 'direction') ? <PostList /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && (canManagePosts || roleName === 'manager' || roleName === 'direction') ? <PostList /> : <Navigate to="/dashboard" replace />
         }
       />
       <Route
@@ -174,7 +173,7 @@ const AppRouter = () => {
       <Route
         path="/posts/:id"
         element={
-          isAuthenticated && (canManagePosts || roleName === 'consultant' || roleName === 'manager' || roleName === 'direction') ? <PostDetail /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && (canManagePosts || roleName === 'manager' || roleName === 'direction') ? <PostDetail /> : <Navigate to="/dashboard" replace />
         }
       />
       <Route
@@ -220,7 +219,7 @@ const AppRouter = () => {
       <Route
         path="/applications/new"
         element={
-          isAuthenticated && canManageApplications && roleName !== 'consultant' ? <ApplicationForm /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && canCreateApplication ? <ApplicationForm /> : <Navigate to="/dashboard" replace />
         }
       />
       <Route
@@ -232,7 +231,7 @@ const AppRouter = () => {
       <Route
         path="/applications/:id/edit"
         element={
-          isAuthenticated && canManageApplications && roleName !== 'consultant' ? <ApplicationForm /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && canEditApplication ? <ApplicationForm /> : <Navigate to="/dashboard" replace />
         }
       />
 
@@ -250,7 +249,7 @@ const AppRouter = () => {
       <Route
         path="/interviews/create"
         element={
-          isAuthenticated && roleName !== 'consultant' && roleName !== 'direction' ? (
+          isAuthenticated && roleName !== 'manager' && roleName !== 'direction' ? (
             <InterviewCreate />
           ) : isAuthenticated ? (
             <Navigate to="/interviews" replace />
@@ -268,7 +267,7 @@ const AppRouter = () => {
       <Route
         path="/interviews/:id/edit"
         element={
-          isAuthenticated && roleName !== 'consultant' && roleName !== 'direction' ? (
+          isAuthenticated && roleName !== 'manager' && roleName !== 'direction' ? (
             <InterviewForm />
           ) : isAuthenticated ? (
             <Navigate to="/interviews" replace />

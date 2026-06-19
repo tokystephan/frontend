@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Navigate, useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import InputField from '../../components/Forms/InputField';
 import SelectField from '../../components/Forms/SelectField';
@@ -22,6 +22,7 @@ import {
   SOURCE_LABELS,
 } from '../../utils/constants';
 import { applicationSchema } from '../../utils/validations';
+import usePermissions from '../../hooks/usePermissions';
 import StatusHistory from './StatusHistory';
 
 const ApplicationForm = () => {
@@ -29,6 +30,8 @@ const ApplicationForm = () => {
   const { id } = useParams();
   const dispatch = useAppDispatch();
   const editing = Boolean(id);
+  const { canCreateApplication, canEditApplication } = usePermissions();
+  const canAccessForm = editing ? canEditApplication : canCreateApplication;
 
   const candidates = useAppSelector((state) => state.candidates.items || []);
   const posts = useAppSelector((state) => state.posts.list || []);
@@ -65,6 +68,8 @@ const ApplicationForm = () => {
 
   // Chargement des données
   useEffect(() => {
+    if (!canAccessForm) return;
+
     dispatch(fetchCandidates());
     dispatch(fetchPosts());
     
@@ -108,7 +113,7 @@ const ApplicationForm = () => {
     return () => {
       active = false;
     };
-  }, [dispatch, editing, id]);
+  }, [canAccessForm, dispatch, editing, id]);
 
   // Options des sélecteurs
   const candidateOptions = useMemo(
@@ -211,16 +216,20 @@ const ApplicationForm = () => {
     return <LoadingSpinner />;
   }
 
+  if (!canAccessForm) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-5xl mx-auto">
         
         {/* ==================== EN-TÊTE ==================== */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-0 mb-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
-                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                <span className="w-2 h-2 rounded-full bg-#3473a8"></span>
                 <span>Formulaire de candidature</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-900">

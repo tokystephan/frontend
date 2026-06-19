@@ -23,6 +23,7 @@ const ROLE_ALIASES = {
   'assistant rh': 'assistant',
   'directeur rh': 'direction',
   directeur: 'direction',
+  consultant: 'manager',
 }
 
 const getNormalizedRole = (roleValue) => {
@@ -55,13 +56,6 @@ const LINKS_BY_ROLE = {
     { to: '/interviews', label: 'Entretiens', icon: Calendar },
     { to: '/profile', label: 'Profil', icon: UserCog },
   ],
-  consultant: [
-    { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-    { to: '/posts', label: 'Postes', icon: Briefcase },
-    { to: '/applications', label: 'Candidatures', icon: FileText },
-    { to: '/interviews', label: 'Entretiens', icon: Calendar },
-    { to: '/profile', label: 'Profil', icon: UserCog },
-  ],
   manager: [
     { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { to: '/posts', label: 'Postes', icon: Briefcase },
@@ -85,8 +79,6 @@ const getRoleLabel = (role) => {
       return 'Responsable RH'
     case 'assistant':
       return 'Assistant RH'
-    case 'consultant':
-      return 'Consultant'
     case 'manager':
       return 'Manager'
     case 'direction':

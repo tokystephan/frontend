@@ -24,6 +24,8 @@ const usePermissions = () => {
       canManageCandidates: hasPermission(roleName, 'canManageCandidates'),
       canDeleteInterviews: hasPermission(roleName, 'canDeleteInterviews'),
       canManageApplications: hasPermission(roleName, 'canManageApplications'),
+      canCreateApplication: hasPermission(roleName, 'canCreateApplication'),
+      canEditApplication: hasPermission(roleName, 'canEditApplication'),
       canViewStats: hasPermission(roleName, 'canViewStats'),
       canArchivePosts: hasPermission(roleName, 'canArchivePosts'),
       canChangeFinalStatus: hasPermission(roleName, 'canChangeFinalStatus'),

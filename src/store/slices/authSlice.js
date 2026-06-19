@@ -35,6 +35,7 @@ const extractRoleName = (roleData) => {
     'assistant rh': 'assistant',
     'directeur rh': 'direction',
     directeur: 'direction',
+    consultant: 'manager',
   }
   const normalizeRole = (value) => {
     const normalized = value.toLowerCase()
@@ -55,7 +56,7 @@ const normalizeUser = (userData) => {
   const roleIdMapping = {
     1: 'admin',
     2: 'assistant',
-    3: 'consultant',
+    3: 'manager',
     4: 'manager',
     5: 'direction',
   }
@@ -66,7 +67,7 @@ const normalizeUser = (userData) => {
     roleName: roleName,
     isAdmin: roleName === 'admin',
     isAssistant: roleName === 'assistant',
-    isConsultant: roleName === 'consultant',
+    isConsultant: false,
     isManager: roleName === 'manager',
     isDirection: roleName === 'direction',
   }

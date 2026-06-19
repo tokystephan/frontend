@@ -25,9 +25,7 @@ import toast from 'react-hot-toast';
 
 const ConsultantDashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const roleName = user?.role || user?.role_name || user?.roleName;
-  const isManager = roleName === 'manager';
-  const endpointPrefix = isManager ? '/manager' : '/consultant';
+  const endpointPrefix = '/manager';
   const [loading, setLoading] = useState(true);
   const [evaluationLoading, setEvaluationLoading] = useState(false);
   
@@ -367,7 +365,7 @@ const ConsultantDashboard = () => {
       <div className="p-4 md:p-6 space-y-6">
         {/* ==================== EN-TÊTE ==================== */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tableau de bord {isManager ? 'Manager' : 'Consultant'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Tableau de bord Manager</h1>
           <p className="text-gray-500 mt-1">
             Bienvenue, {user?.first_name} {user?.last_name}
           </p>

@@ -60,12 +60,11 @@ const UserManagement = () => {
   const roleOptions = [
     { id: 1, name: 'admin', display_name: 'Responsable RH', color: 'bg-blue-600' },
     { id: 2, name: 'assistant', display_name: 'Assistant RH', color: 'bg-blue-500' },
-    { id: 3, name: 'consultant', display_name: 'Consultant', color: 'bg-green-600' },
     { id: 4, name: 'manager', display_name: 'Manager', color: 'bg-emerald-600' },
     { id: 5, name: 'direction', display_name: 'Direction', color: 'bg-amber-600' },
   ];
 
-  const roleNeedsDepartment = (roleId) => [3, 4].includes(Number(roleId));
+  const roleNeedsDepartment = (roleId) => Number(roleId) === 4;
   const normalizeRoleName = (roleName) => String(roleName || '').toLowerCase().trim();
 
   const fetchUsers = useCallback(async () => {

@@ -120,7 +120,6 @@ const Header = ({ onMenuClick }) => {
     const roles = { 
       admin: 'Responsable RH', 
       assistant: 'Assistant RH', 
-      consultant: 'Consultant', 
       direction: 'Direction', 
       manager: 'Manager' 
     };
@@ -182,14 +181,9 @@ const Header = ({ onMenuClick }) => {
             </button>
           )}
           <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="flex flex-col leading-tight">
-              <span className="text-[var(--app-primary)] font-semibold text-base tracking-tight group-hover:text-[var(--app-primary-hover)] transition-colors">
-                Akanjo
-              </span>
-              <span className="text-[var(--app-primary-hover)] text-[9px] uppercase tracking-widest">
-                Gestion des candidatures
-              </span>
-            </div>
+           <img src="logo de akanjo.jpg" alt="Logo" className="h-15 w-50 transition-transform group-hover:scale-100" />
+          
+           
           </Link>
         </div>
 

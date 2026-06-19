@@ -43,7 +43,7 @@ export const registerSchema = z.object({
     .string()
     .min(1, 'Rôle requis')
     .refine(
-      (val) => ['assistant', 'consultant', 'manager', 'direction'].includes(String(val).toLowerCase().trim()),
+      (val) => ['assistant', 'manager', 'direction'].includes(String(val).toLowerCase().trim()),
       'Rôle invalide'
     ),
 }).superRefine((data, ctx) => {

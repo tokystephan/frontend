@@ -222,7 +222,7 @@ export default function InterviewForm({ onClose, onCreated }) {
               <option value="">Sélectionner</option>
               {(Array.isArray(candidatures) ? candidatures : []).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.candidate?.name || 'N/A'} - {c.post?.title || 'N/A'}
+                  {c.candidate?.first_name || 'N/A'} {c.candidate?.last_name || ''} - {c.post?.title || 'N/A'}
                 </option>
               ))}
             </select>

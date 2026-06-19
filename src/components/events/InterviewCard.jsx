@@ -131,7 +131,7 @@ export default function InterviewCard({ entretien, onStatutChange, onSupprimer, 
       {/* Actions dynamiques */}
       <div className="flex flex-col gap-2 pt-2 border-t">
         {/* Manager Actions - Accept/Refuse */}
-        {(roleName === 'consultant' || roleName === 'manager') && statut === 'planifie' && (
+        {roleName === 'manager' && statut === 'planifie' && (
           <div className="flex gap-2">
             <button onClick={() => setShowResponse(true)} className="flex-1 text-xs bg-blue-100 text-blue-600 rounded px-3 py-2 hover:bg-blue-200 transition font-medium">
               ✅ Accepter/Refuser
@@ -147,7 +147,7 @@ export default function InterviewCard({ entretien, onStatutChange, onSupprimer, 
           </div>
         )}
 
-        {/* Admin/Assistant actions (consultant cannot modify/cancel/reporter) */}
+        {/* Admin/Assistant actions (manager cannot modify/cancel/reporter) */}
         {canCancelInterview && statut === 'planifie' && (
           <div className="flex gap-2">
             <button onClick={()=>handleStatut('termine')} className="text-xs border-green-200 text-green-700 rounded px-3 py-1">✅ Réalisé</button>

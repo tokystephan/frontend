@@ -15,7 +15,7 @@ import { APPLICATION_STATUSES, APPLICATION_STATUS_LABELS, DEFAULT_PAGE_SIZE } fr
 const ApplicationList = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { roleName, canManageApplications } = usePermissions();
+  const { canCreateApplication, canEditApplication } = usePermissions();
 
   const { applications: items = [], loading = false, error = null } = useAppSelector(
     (state) => state.applications || {}
@@ -172,7 +172,7 @@ const ApplicationList = () => {
           >
             <Eye className="w-4 h-4" />
           </button>
-          {canManageApplications && roleName !== 'consultant' && (
+          {canEditApplication && (
             <button
               onClick={() => navigate(`/applications/${row.id}/edit`)}
               className="p-1.5 text-gray-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition"
@@ -211,7 +211,7 @@ const ApplicationList = () => {
                 <Home className="w-4 h-4" />
                 Dashboard
               </Link>
-              {canManageApplications && roleName !== 'consultant' && (
+              {canCreateApplication && (
                 <Link
                   to="/applications/new"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
@@ -335,9 +335,11 @@ const ApplicationList = () => {
             <p className="text-gray-500">
               {search || status
                 ? 'Essayez de modifier vos filtres de recherche'
-                : 'Commencez par créer une nouvelle candidature'}
+                : canCreateApplication
+                  ? 'Commencez par créer une nouvelle candidature'
+                  : 'Aucune candidature disponible'}
             </p>
-            {canManageApplications && !search && !status && (
+            {canCreateApplication && !search && !status && (
               <Link
                 to="/applications/new"
                 className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
@@ -403,7 +405,7 @@ const ApplicationList = () => {
                             >
                               <Eye className="w-4 h-4" />
                             </button>
-                            {canManageApplications && roleName !== 'consultant' && (
+                            {canEditApplication && (
                               <button
                                 onClick={() => navigate(`/applications/${row.id}/edit`)}
                                 className="p-1.5 text-gray-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition"

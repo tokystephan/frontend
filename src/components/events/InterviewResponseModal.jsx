@@ -22,7 +22,7 @@ export default function InterviewResponseModal({ interview, onClose, onSuccess }
 
     setLoading(true);
     try {
-      await axios.post(`/consultant/interviews/${interview.id}/respond`, { response });
+      await axios.post(`/manager/interviews/${interview.id}/respond`, { response });
       toast.success(response === 'accept' ? 'Entretien accepté' : 'Entretien refusé');
       onSuccess();
       onClose();

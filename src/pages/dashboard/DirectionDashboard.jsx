@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import AppLayout from '../../components/Layout/AppLayout'
-import { Download, RefreshCw } from 'lucide-react'
+import { Download, RefreshCw, Check, X } from 'lucide-react'
 import { 
   ResponsiveContainer, Bar, XAxis, YAxis, 
   CartesianGrid, Tooltip, PieChart, Pie, Cell, 
@@ -39,6 +39,7 @@ const STATS_DEFAULTS = {
   },
 }
 
+// Normalisation des données
 const normalizeDirectionPayload = (payload) => ({
   monthlyTrend: Array.isArray(payload?.monthlyTrend)
     ? payload.monthlyTrend.map((item) => ({
@@ -66,14 +67,37 @@ const normalizeDirectionPayload = (payload) => ({
   recentRecruitments: Array.isArray(payload?.recentRecruitments) ? payload.recentRecruitments : [],
 })
 
+// Composant de notification toast simple
+const Toast = ({ message, type, onClose }) => {
+  const [visible, setVisible] = useState(true)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false)
+      if (onClose) onClose()
+    }, 5000)
+    return () => clearTimeout(timer)
+  }, [onClose])
+
+  if (!visible) return null
+
+  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+  return (
+    <div className={`fixed bottom-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2`}>
+      {type === 'success' ? <Check className="w-4 h-4" /> : type === 'error' ? <X className="w-4 h-4" /> : null}
+      {message}
+    </div>
+  )
+}
+
 const DirectionDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [period, setPeriod] = useState('month')
   const [stats, setStats] = useState(STATS_DEFAULTS)
   const [lastUpdate, setLastUpdate] = useState(null)
+  const [toast, setToast] = useState(null)
 
-  // ✅ Fonction de chargement
+  // Fonction de chargement
   const fetchDirectionStats = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -90,7 +114,7 @@ const DirectionDashboard = () => {
         setStats((prev) => ({
           ...prev,
           totalApplications: payload.totalApplications ?? prev.totalApplications,
-          totalRecruitments: payload.totalApplicationsPeriod ?? prev.totalRecruitments,
+          totalRecruitments: payload.totalApplicationsPeriod ?? payload.totalRecruitments ?? prev.totalRecruitments,
           pending: payload.pending ?? prev.pending,
           averageDelay: payload.averageDelay ?? prev.averageDelay,
           successRate: payload.successRate ?? prev.successRate,
@@ -102,29 +126,45 @@ const DirectionDashboard = () => {
           topPerformingSources: payload.topPerformingSources ?? prev.topPerformingSources,
           pendingValidations: normalized.pendingValidations,
           recentRecruitments: normalized.recentRecruitments,
+          yearlyComparison: payload.yearlyComparison ?? prev.yearlyComparison,
+          // On garde les changes
+          recruitmentsChange: payload.recruitmentsChange ?? 0,
+          applicationsChange: payload.applicationsChange ?? 0,
+          delayChange: payload.delayChange ?? 0,
+          costChange: payload.costChange ?? 0,
+          successChange: payload.successChange ?? 0,
         }))
         setLastUpdate(new Date())
+        showToast('Données mises à jour', 'success')
       }
     } catch (error) {
       console.error('Erreur chargement dashboard direction:', error)
       setError(error.response?.data?.message || 'Erreur de chargement des données')
+      showToast('Erreur de chargement', 'error')
     } finally {
       setLoading(false)
     }
   }, [period])
 
-  // ✅ Chargement initial
+  // Helper pour les toasts
+  const showToast = (message, type = 'info') => {
+    setToast({ message, type })
+  }
+
+  const hideToast = () => setToast(null)
+
+  // Chargement initial
   useEffect(() => {
     fetchDirectionStats()
   }, [fetchDirectionStats])
 
-  // ✅ Rafraîchissement automatique toutes les 5 minutes
+  // Rafraîchissement automatique toutes les 5 minutes
   useEffect(() => {
     const interval = setInterval(fetchDirectionStats, 5 * 60 * 1000)
     return () => clearInterval(interval)
   }, [fetchDirectionStats])
 
-  // ✅ Export du rapport
+  // Export du rapport
   const handleExportReport = async () => {
     try {
       const response = await axios.post(
@@ -145,12 +185,14 @@ const DirectionDashboard = () => {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
+      showToast('Export réussi', 'success')
     } catch (error) {
       console.error('Erreur export:', error)
+      showToast('Erreur lors de l\'export', 'error')
     }
   }
 
-  // ✅ Validations
+  // Validations
   const handleApproveValidation = async (id) => {
     try {
       await axios.post(`/statistics/direction/validations/${id}/approve`)
@@ -158,8 +200,10 @@ const DirectionDashboard = () => {
         ...prev,
         pendingValidations: prev.pendingValidations.filter((v) => v.id !== id),
       }))
+      showToast('Validation approuvée', 'success')
     } catch (error) {
       console.error('Erreur approbation:', error)
+      showToast('Erreur lors de l\'approbation', 'error')
     }
   }
 
@@ -170,12 +214,14 @@ const DirectionDashboard = () => {
         ...prev,
         pendingValidations: prev.pendingValidations.filter((v) => v.id !== id),
       }))
+      showToast('Validation rejetée', 'success')
     } catch (error) {
       console.error('Erreur refus:', error)
+      showToast('Erreur lors du rejet', 'error')
     }
   }
 
-  // ✅ Composant Carte Statistique
+  // Composant Carte Statistique
   const StatCard = ({ title, value, change, unit = '', color = 'text-[var(--app-text)]' }) => (
     <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-soft)] p-4">
       <p className="text-xs uppercase text-[var(--app-text-soft)]">{title}</p>
@@ -190,7 +236,7 @@ const DirectionDashboard = () => {
     </div>
   )
 
-  // ✅ État de chargement
+  // État de chargement
   if (loading) {
     return (
       <AppLayout>
@@ -202,7 +248,7 @@ const DirectionDashboard = () => {
     )
   }
 
-  // ✅ État d'erreur
+  // État d'erreur
   if (error) {
     return (
       <AppLayout>
@@ -220,8 +266,31 @@ const DirectionDashboard = () => {
     )
   }
 
+  // Calcul de la tendance (moyenne mobile sur 3 mois)
+  const monthlyTrend = stats.monthlyTrend
+  const trendData = monthlyTrend.map((item, index, array) => {
+    if (array.length < 3) return item.applications
+    let sum = 0, count = 0
+    for (let i = Math.max(0, index-1); i <= Math.min(index+1, array.length-1); i++) {
+      sum += array[i].applications
+      count++
+    }
+    return count ? sum / count : item.applications
+  })
+
+  // Construction des données pour le graphique avec tendance
+  const chartData = monthlyTrend.map((item, index) => ({
+    ...item,
+    trend: Math.round(trendData[index] * 10) / 10, // arrondi
+  }))
+
   return (
     <AppLayout>
+      {/* Toast */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
+      )}
+
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -257,7 +326,7 @@ const DirectionDashboard = () => {
               ))}
             </div>
 
-            {/* Bouton rafraîchir */}
+            {/* Rafraîchir */}
             <button
               onClick={fetchDirectionStats}
               className="p-2 text-[var(--app-text-soft)] hover:text-[var(--app-text)] transition rounded-lg hover:bg-[var(--app-bg-soft)]"
@@ -266,7 +335,7 @@ const DirectionDashboard = () => {
               <RefreshCw className="w-4 h-4" />
             </button>
 
-            {/* Bouton export */}
+            {/* Exporter */}
             <button
               onClick={handleExportReport}
               className="flex items-center gap-2 px-3 py-1.5 bg-[var(--app-border)] text-[var(--app-text)] rounded-lg hover:bg-[var(--app-bg-soft)] transition text-sm"
@@ -308,11 +377,11 @@ const DirectionDashboard = () => {
             <h3 className="text-sm font-medium text-[var(--app-text)] mb-4">
               📈 Évolution des recrutements
             </h3>
-            {stats.monthlyTrend.length > 0 ? (
+            {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
-                <ComposedChart data={stats.monthlyTrend}>
+                <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--app-border)" />
-                    <XAxis dataKey="month_name" stroke="var(--app-text-soft)" fontSize={12} />
+                  <XAxis dataKey="month_name" stroke="var(--app-text-soft)" fontSize={12} />
                   <YAxis yAxisId="left" stroke="var(--app-text-soft)" fontSize={12} />
                   <YAxis yAxisId="right" orientation="right" stroke="var(--app-text-soft)" fontSize={12} />
                   <Tooltip
@@ -325,7 +394,7 @@ const DirectionDashboard = () => {
                   />
                   <Legend />
                   <Bar yAxisId="left" dataKey="applications" name="Candidatures" fill="var(--app-text)" radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="applications" name="Tendance" stroke="var(--app-success)" strokeWidth={2} />
+                  <Line yAxisId="right" type="monotone" dataKey="trend" name="Tendance (moy. mobile)" stroke="var(--app-success)" strokeWidth={2} dot={false} />
                 </ComposedChart>
               </ResponsiveContainer>
             ) : (

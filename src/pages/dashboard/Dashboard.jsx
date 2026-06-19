@@ -59,20 +59,24 @@ const Dashboard = () => {
   useEffect(() => {
     const run = async () => {
       try {
-        const result = await getStatistics()
-        setStats({
-          totalApplications: result.totalApplications || 0,
-          pending: result.pending || 0,
-          byStatus: result.byStatus || [],
-          byDepartment: result.byDepartment || {},
-        })
+        const canLoadGlobalStats = [ROLES.ADMIN, ROLES.ASSISTANT].includes(role)
+
+        if (canLoadGlobalStats) {
+          const result = await getStatistics()
+          setStats({
+            totalApplications: result.totalApplications || 0,
+            pending: result.pending || 0,
+            byStatus: result.byStatus || [],
+            byDepartment: result.byDepartment || {},
+          })
+        }
       } finally {
         setLoading(false)
       }
     }
 
     run()
-  }, [])
+  }, [role])
 
   if (loading) {
     return <LoadingSpinner label="Chargement du dashboard..." />
@@ -86,9 +90,6 @@ const Dashboard = () => {
     case ROLES.ASSISTANT:
       console.log('✅ Affichage AssistantDashboard')
       return <AssistantDashboard stats={stats} />
-    case ROLES.CONSULTANT:
-      console.log('✅ Affichage ConsultantDashboard')
-      return <ConsultantDashboard stats={stats} />
     case ROLES.MANAGER:
       console.log('✅ Affichage ManagerDashboard')
       return <ConsultantDashboard stats={stats} />

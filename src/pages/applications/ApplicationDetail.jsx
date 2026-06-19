@@ -48,10 +48,28 @@ const ApplicationDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { roleName, canManageApplications, canChangeFinalStatus } = usePermissions()
+  const { canEditApplication } = usePermissions()
 
   const { currentApplication, loading, error } = useAppSelector((state) => state.applications)
   const user = useAppSelector((state) => state.auth.user)
+
+  // ========== VÉRIFICATION DES RÔLES ==========
+  const isDirection = user?.role_id === 5
+  const isAssistant = user?.role_id === 2
+  const isManager = user?.role_id === 4
+
+  // ✅ Peut modifier selon les permissions fines - Direction NON
+  const canEdit = canEditApplication
+
+  // ✅ Peut supprimer (Admin uniquement)
+  const canDelete = user?.role_id === 1
+
+  // ✅ Peut changer le statut - Admin, Assistant, Manager ET Direction ✅
+  // La Direction peut maintenant mettre à jour le statut
+  const canUpdateStatus = user?.role_id === 1 || isAssistant || isManager || isDirection
+
+  // ✅ Peut ajouter des commentaires - TOUT LE MONDE
+  const canAddComments = true
 
   const getCandidateName = () => {
     if (currentApplication?.candidate) {
@@ -93,7 +111,6 @@ const ApplicationDetail = () => {
     }
   }, [dispatch, id])
 
-  const canUpdateStatus = roleName !== 'consultant' && (canManageApplications || canChangeFinalStatus)
   const selectedStatus = statusDraft || currentApplication?.status || ''
 
   const statusOptions = useMemo(
@@ -203,13 +220,28 @@ const ApplicationDetail = () => {
             <ArrowLeft className="w-4 h-4" />
             Retour aux candidatures
           </button>
-          <Link 
-            to="/dashboard" 
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
-          >
-            <Home className="w-4 h-4" />
-            Dashboard
-          </Link>
+          
+          <div className="flex items-center gap-3">
+            {/* ✅ BOUTON MODIFIER - UNIQUEMENT ADMIN OU ASSISTANT */}
+            {/* ❌ Direction ne voit PAS ce bouton */}
+            {canEdit && (
+              <Link 
+                to={`/applications/${currentApplication.id}/edit`} 
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition shadow-sm"
+              >
+                <Edit2 className="w-4 h-4" />
+                Modifier la candidature
+              </Link>
+            )}
+            
+            <Link 
+              to="/dashboard" 
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
+            >
+              <Home className="w-4 h-4" />
+              Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* ========== EN-TÊTE CANDIDATURE ========== */}
@@ -272,12 +304,18 @@ const ApplicationDetail = () => {
         </div>
 
         {/* ========== MISE À JOUR STATUT ========== */}
+        {/* ✅ Direction voit ET utilise cette section maintenant */}
         {canUpdateStatus && (
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-5 py-3">
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-gray-500" />
                 <h3 className="font-medium text-gray-800">Mettre à jour le statut</h3>
+                {isDirection && (
+                  <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    Direction
+                  </span>
+                )}
               </div>
             </div>
             
@@ -338,7 +376,7 @@ const ApplicationDetail = () => {
             </div>
           </div>
 
-          {/* Commentaires internes */}
+          {/* ✅ COMMENTAIRES - Direction peut voir ET ajouter */}
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="border-b border-gray-100 px-5 py-3">
               <div className="flex items-center gap-2">
@@ -355,19 +393,6 @@ const ApplicationDetail = () => {
             </div>
           </div>
         </div>
-
-        {/* ========== BOUTON MODIFIER ========== */}
-        {canManageApplications && roleName !== 'consultant' && (
-          <div className="flex justify-center pt-2">
-            <Link 
-              to={`/applications/${currentApplication.id}/edit`} 
-              className="inline-flex items-center gap-2 px-5 py-2.5 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
-            >
-              <Edit2 className="w-4 h-4" />
-              Modifier la candidature
-            </Link>
-          </div>
-        )}
       </div>
     </div>
   )

@@ -8,8 +8,8 @@ const ROLE_ALIASES = {
   'assistant rh': 'assistant',
   'directeur rh': 'direction',
   directeur: 'direction',
-  // ✅ AJOUT: Alias pour les noms mal formatés
-  'consultant technique': 'consultant',
+  consultant: 'manager',
+  'consultant technique': 'manager',
   'recruteur': 'assistant',
   'administrateur': 'admin',
 }
@@ -18,7 +18,7 @@ const ROLE_ALIASES = {
 const ROLE_ID_MAPPING = {
   1: 'admin',
   2: 'assistant',
-  3: 'consultant',
+  3: 'manager',
   4: 'manager',
   5: 'direction',
 }
@@ -27,7 +27,6 @@ const ROLE_ID_MAPPING = {
 const roleRoutes = {
   admin: '/dashboard/admin',
   direction: '/dashboard/direction',
-  consultant: '/dashboard/consultant',
   manager: '/dashboard/manager',
   assistant: '/dashboard/assistant'
 }
@@ -36,7 +35,6 @@ const roleRoutes = {
 const DEFAULT_ROUTES = {
   admin: '/admin/dashboard',
   assistant: '/assistant/dashboard',
-  consultant: '/consultant/dashboard',
   direction: '/direction/dashboard',
 }
 
@@ -50,7 +48,7 @@ const normalizeRoleName = (roleValue) => {
   }
   
   // Vérifier si le nom correspond directement à un rôle valide
-  const validRoles = ['admin', 'assistant', 'consultant', 'manager', 'direction']
+  const validRoles = ['admin', 'assistant', 'manager', 'direction']
   if (validRoles.includes(normalized)) {
     return normalized
   }
@@ -193,7 +191,6 @@ export const getFormattedRole = (user) => {
   const displayNames = {
     admin: 'Administrateur',
     assistant: 'Assistant RH',
-    consultant: 'Consultant',
     manager: 'Manager',
     direction: 'Direction',
   }

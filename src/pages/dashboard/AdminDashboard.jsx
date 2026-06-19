@@ -152,6 +152,8 @@ const getRoleLabel = (role) => {
       return 'Assistant'
     case 'consultant':
       return 'Manager'
+    case 'manager':
+      return 'Manager'
     default:
       return 'Direction'
   }
@@ -164,6 +166,8 @@ const getRoleBadgeClass = (role) => {
     case 'assistant':
       return 'bg-[var(--app-bg-soft)] text-[var(--app-text-soft)]'
     case 'consultant':
+      return 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
+    case 'manager':
       return 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
     default:
       return 'bg-[var(--app-muted)]/15 text-[var(--app-muted)]'

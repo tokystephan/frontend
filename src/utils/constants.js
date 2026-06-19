@@ -1,7 +1,6 @@
 export const ROLES = {
   ADMIN: 'admin',
   ASSISTANT: 'assistant',
-  CONSULTANT: 'consultant',
   MANAGER: 'manager',
   DIRECTION: 'direction',
 }
@@ -9,7 +8,6 @@ export const ROLES = {
 export const ROLE_LABELS = {
   [ROLES.ADMIN]: 'Responsable RH',
   [ROLES.ASSISTANT]: 'Assistant RH',
-  [ROLES.CONSULTANT]: 'Consultant',
   [ROLES.MANAGER]: 'Manager',
   [ROLES.DIRECTION]: 'Direction',
 }
