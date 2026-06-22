@@ -8,4 +8,23 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+  },
+   build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@hookform/resolvers', 'react-hook-form', 'zod'],
+          charts: ['recharts'],
+          utils: ['axios', 'date-fns', 'framer-motion']
+        }
+      }
+    }
+  }
 })

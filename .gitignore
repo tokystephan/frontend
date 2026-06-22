@@ -1,2 +1,6 @@
-node_modules/\ndist/\n.env.local\n.env.*.local\n
-node_modules
+node_modules/
+dist/
+.env.local
+.env.*.local
+*.log
+.DS_Store
