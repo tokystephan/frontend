@@ -1,14 +1,27 @@
+// src/pages/dashboard/DirectionDashboard.jsx
+
 import React, { useState, useEffect, useCallback } from 'react'
 import AppLayout from '../../components/Layout/AppLayout'
 import { Download, RefreshCw, Check, X } from 'lucide-react'
-import { 
-  ResponsiveContainer, Bar, XAxis, YAxis, 
-  CartesianGrid, Tooltip, PieChart, Pie, Cell, 
-  ComposedChart, Line, Legend 
+import {
+  ResponsiveContainer,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  ComposedChart,
+  Line,
+  Legend,
 } from 'recharts'
 import axios from '../../api/axiosConfig'
 
-// ✅ Constantes
+// ============================================================
+// CONSTANTES
+// ============================================================
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec489a', '#06b6d4', '#84cc16']
 
 const STATS_DEFAULTS = {
@@ -39,35 +52,38 @@ const STATS_DEFAULTS = {
   },
 }
 
-// Normalisation des données
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+const safeNumber = (val) => (isNaN(Number(val)) ? 0 : Number(val))
+
 const normalizeDirectionPayload = (payload) => ({
   monthlyTrend: Array.isArray(payload?.monthlyTrend)
     ? payload.monthlyTrend.map((item) => ({
-        ...item,
         month_name: item.month_name || item.month || '',
-        applications: Number(item.applications ?? item.count ?? 0),
-        recruitments: Number(item.recruitments ?? item.count ?? 0),
+        applications: safeNumber(item.applications ?? item.count ?? 0),
+        recruitments: safeNumber(item.recruitments ?? item.hires ?? 0),
       }))
     : [],
   applicationsByDepartment: Array.isArray(payload?.applicationsByDepartment)
     ? payload.applicationsByDepartment.map((item) => ({
-        ...item,
         name: item.department ?? item.name ?? '',
-        value: Number(item.count ?? item.value ?? 0),
+        value: safeNumber(item.count ?? item.value ?? 0),
       }))
     : [],
   applicationsBySource: Array.isArray(payload?.applicationsBySource)
     ? payload.applicationsBySource.map((item) => ({
-        ...item,
         name: item.source ?? item.name ?? '',
-        value: Number(item.count ?? item.value ?? 0),
+        value: safeNumber(item.count ?? item.value ?? 0),
       }))
     : [],
   pendingValidations: Array.isArray(payload?.pendingValidations) ? payload.pendingValidations : [],
   recentRecruitments: Array.isArray(payload?.recentRecruitments) ? payload.recentRecruitments : [],
 })
 
-// Composant de notification toast simple
+// ============================================================
+// COMPOSANT TOAST
+// ============================================================
 const Toast = ({ message, type, onClose }) => {
   const [visible, setVisible] = useState(true)
   useEffect(() => {
@@ -80,15 +96,25 @@ const Toast = ({ message, type, onClose }) => {
 
   if (!visible) return null
 
-  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+  const bgColor =
+    type === 'success'
+      ? 'bg-green-500'
+      : type === 'error'
+      ? 'bg-red-500'
+      : 'bg-blue-500'
   return (
-    <div className={`fixed bottom-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2`}>
+    <div
+      className={`fixed bottom-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center gap-2`}
+    >
       {type === 'success' ? <Check className="w-4 h-4" /> : type === 'error' ? <X className="w-4 h-4" /> : null}
       {message}
     </div>
   )
 }
 
+// ============================================================
+// COMPOSANT PRINCIPAL
+// ============================================================
 const DirectionDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -97,28 +123,32 @@ const DirectionDashboard = () => {
   const [lastUpdate, setLastUpdate] = useState(null)
   const [toast, setToast] = useState(null)
 
-  // Fonction de chargement
+  // ============================================================
+  // CHARGEMENT DES DONNÉES (API RÉELLE UNIQUEMENT)
+  // ============================================================
   const fetchDirectionStats = useCallback(async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
-      const response = await axios.get('/statistics/direction', { 
-        params: { period } 
+      const response = await axios.get('/statistics/direction', {
+        params: { period },
       })
-      
+
       if (response.data) {
         const payload = response.data
         const normalized = normalizeDirectionPayload(payload)
 
         setStats((prev) => ({
           ...prev,
-          totalApplications: payload.totalApplications ?? prev.totalApplications,
-          totalRecruitments: payload.totalApplicationsPeriod ?? payload.totalRecruitments ?? prev.totalRecruitments,
-          pending: payload.pending ?? prev.pending,
-          averageDelay: payload.averageDelay ?? prev.averageDelay,
-          successRate: payload.successRate ?? prev.successRate,
-          openPosts: payload.openPosts ?? prev.openPosts,
+          totalApplications: safeNumber(payload.totalApplications ?? prev.totalApplications),
+          totalRecruitments: safeNumber(
+            payload.totalRecruitments ?? payload.totalApplicationsPeriod ?? prev.totalRecruitments
+          ),
+          pending: safeNumber(payload.pending ?? prev.pending),
+          averageDelay: safeNumber(payload.averageDelay ?? prev.averageDelay),
+          successRate: safeNumber(payload.successRate ?? prev.successRate),
+          openPosts: safeNumber(payload.openPosts ?? prev.openPosts),
           monthlyTrend: normalized.monthlyTrend,
           applicationsByDepartment: normalized.applicationsByDepartment,
           applicationsBySource: normalized.applicationsBySource,
@@ -127,12 +157,11 @@ const DirectionDashboard = () => {
           pendingValidations: normalized.pendingValidations,
           recentRecruitments: normalized.recentRecruitments,
           yearlyComparison: payload.yearlyComparison ?? prev.yearlyComparison,
-          // On garde les changes
-          recruitmentsChange: payload.recruitmentsChange ?? 0,
-          applicationsChange: payload.applicationsChange ?? 0,
-          delayChange: payload.delayChange ?? 0,
-          costChange: payload.costChange ?? 0,
-          successChange: payload.successChange ?? 0,
+          recruitmentsChange: safeNumber(payload.recruitmentsChange ?? 0),
+          applicationsChange: safeNumber(payload.applicationsChange ?? 0),
+          delayChange: safeNumber(payload.delayChange ?? 0),
+          costChange: safeNumber(payload.costChange ?? 0),
+          successChange: safeNumber(payload.successChange ?? 0),
         }))
         setLastUpdate(new Date())
         showToast('Données mises à jour', 'success')
@@ -164,20 +193,28 @@ const DirectionDashboard = () => {
     return () => clearInterval(interval)
   }, [fetchDirectionStats])
 
-  // Export du rapport
+  // ============================================================
+  // EXPORT (avec vérification du blob)
+  // ============================================================
   const handleExportReport = async () => {
     try {
       const response = await axios.post(
-        '/statistics/direction/export', 
-        { 
+        '/statistics/direction/export',
+        {
           type: 'applications',
           period,
-          format: 'csv'
-        }, 
+          format: 'csv',
+        },
         { responseType: 'blob' }
       )
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+
+      // Vérifier que la réponse est un blob valide
+      if (!response.data || response.data.size === 0) {
+        throw new Error('Le fichier exporté est vide')
+      }
+
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' })
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.setAttribute('download', `rapport_direction_${new Date().toISOString().slice(0, 10)}.csv`)
@@ -188,11 +225,31 @@ const DirectionDashboard = () => {
       showToast('Export réussi', 'success')
     } catch (error) {
       console.error('Erreur export:', error)
-      showToast('Erreur lors de l\'export', 'error')
+      // Récupérer le message d'erreur du backend si disponible
+      let errorMsg = "Erreur lors de l'export"
+      if (error.response?.data) {
+        // Si c'est un blob d'erreur, on le lit en texte
+        if (error.response.data instanceof Blob) {
+          try {
+            const text = await error.response.data.text()
+            const json = JSON.parse(text)
+            errorMsg = json.message || errorMsg
+          } catch {
+            // si ce n'est pas du JSON, on garde le message par défaut
+          }
+        } else {
+          errorMsg = error.response.data?.message || errorMsg
+        }
+      } else if (error.message) {
+        errorMsg = error.message
+      }
+      showToast('Erreur: ' + errorMsg, 'error')
     }
   }
 
-  // Validations
+  // ============================================================
+  // VALIDATIONS
+  // ============================================================
   const handleApproveValidation = async (id) => {
     try {
       await axios.post(`/statistics/direction/validations/${id}/approve`)
@@ -221,12 +278,15 @@ const DirectionDashboard = () => {
     }
   }
 
-  // Composant Carte Statistique
+  // ============================================================
+  // COMPOSANT CARTE STATISTIQUE
+  // ============================================================
   const StatCard = ({ title, value, change, unit = '', color = 'text-[var(--app-text)]' }) => (
     <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-soft)] p-4">
       <p className="text-xs uppercase text-[var(--app-text-soft)]">{title}</p>
       <p className={`mt-2 text-2xl font-bold ${color}`}>
-        {value}{unit}
+        {value}
+        {unit}
       </p>
       {change !== undefined && change !== 0 && (
         <div className={`mt-1 text-xs ${change >= 0 ? 'text-green-500' : 'text-red-500'}`}>
@@ -236,7 +296,9 @@ const DirectionDashboard = () => {
     </div>
   )
 
-  // État de chargement
+  // ============================================================
+  // RENDU
+  // ============================================================
   if (loading) {
     return (
       <AppLayout>
@@ -248,7 +310,6 @@ const DirectionDashboard = () => {
     )
   }
 
-  // État d'erreur
   if (error) {
     return (
       <AppLayout>
@@ -266,38 +327,18 @@ const DirectionDashboard = () => {
     )
   }
 
-  // Calcul de la tendance (moyenne mobile sur 3 mois)
-  const monthlyTrend = stats.monthlyTrend
-  const trendData = monthlyTrend.map((item, index, array) => {
-    if (array.length < 3) return item.applications
-    let sum = 0, count = 0
-    for (let i = Math.max(0, index-1); i <= Math.min(index+1, array.length-1); i++) {
-      sum += array[i].applications
-      count++
-    }
-    return count ? sum / count : item.applications
-  })
-
-  // Construction des données pour le graphique avec tendance
-  const chartData = monthlyTrend.map((item, index) => ({
-    ...item,
-    trend: Math.round(trendData[index] * 10) / 10, // arrondi
-  }))
+  const chartData = stats.monthlyTrend
 
   return (
     <AppLayout>
       {/* Toast */}
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-      )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={hideToast} />}
 
       <div className="space-y-6">
-        {/* Header */}
+        {/* ==================== HEADER ==================== */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold text-[var(--app-text)]">
-              Dashboard Direction
-            </h2>
+            <h2 className="text-xl font-semibold text-[var(--app-text)]">Dashboard Direction</h2>
             <p className="text-sm text-[var(--app-text-soft)]">
               Vue synthétique globale pour le pilotage des recrutements
               {lastUpdate && (
@@ -309,15 +350,15 @@ const DirectionDashboard = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Boutons période */}
+            {/* Filtres période */}
             <div className="flex bg-[var(--app-bg-soft)] rounded-lg p-1">
               {['month', 'quarter', 'year'].map((p) => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
                   className={`px-3 py-1 rounded-md text-sm transition capitalize ${
-                    period === p 
-                      ? 'bg-[var(--app-text)] text-white shadow-sm' 
+                    period === p
+                      ? 'bg-[var(--app-text)] text-white shadow-sm'
                       : 'text-[var(--app-text-soft)] hover:text-[var(--app-text)]'
                   }`}
                 >
@@ -345,34 +386,29 @@ const DirectionDashboard = () => {
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* ==================== KPIs ==================== */}
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard 
-            title="Candidatures globales" 
-            value={stats.totalApplications} 
-            change={stats.applicationsChange} 
-          />
-          <StatCard 
-            title="Dossiers en attente" 
-            value={stats.pending} 
-            color="text-yellow-600"
-          />
-          <StatCard 
-            title="Postes ouverts" 
-            value={stats.openPosts} 
-          />
-          <StatCard 
-            title="Taux de succès" 
-            value={stats.successRate} 
-            unit="%" 
+          <StatCard title="Candidatures globales" value={stats.totalApplications} change={stats.applicationsChange} />
+          <StatCard title="Dossiers en attente" value={stats.pending} color="text-yellow-600" />
+          <StatCard title="Postes ouverts" value={stats.openPosts} />
+          <StatCard
+            title="Taux de succès"
+            value={stats.successRate}
+            unit="%"
             change={stats.successChange}
-            color={stats.successRate >= 70 ? 'text-green-600' : stats.successRate >= 50 ? 'text-yellow-600' : 'text-red-600'}
+            color={
+              stats.successRate >= 70
+                ? 'text-green-600'
+                : stats.successRate >= 50
+                ? 'text-yellow-600'
+                : 'text-red-600'
+            }
           />
         </div>
 
-        {/* Graphiques */}
+        {/* ==================== GRAPHIQUES ==================== */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Évolution */}
+          {/* Évolution des recrutements */}
           <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] p-4">
             <h3 className="text-sm font-medium text-[var(--app-text)] mb-4">
               📈 Évolution des recrutements
@@ -383,7 +419,7 @@ const DirectionDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--app-border)" />
                   <XAxis dataKey="month_name" stroke="var(--app-text-soft)" fontSize={12} />
                   <YAxis yAxisId="left" stroke="var(--app-text-soft)" fontSize={12} />
-                  <YAxis yAxisId="right" orientation="right" stroke="var(--app-text-soft)" fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke="var(--app-text-soft)" fontSize={12} domain={[0, 'auto']} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: 'var(--app-surface)',
@@ -394,13 +430,19 @@ const DirectionDashboard = () => {
                   />
                   <Legend />
                   <Bar yAxisId="left" dataKey="applications" name="Candidatures" fill="var(--app-text)" radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="trend" name="Tendance (moy. mobile)" stroke="var(--app-success)" strokeWidth={2} dot={false} />
+                  <Line
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="recruitments"
+                    name="Recrutements"
+                    stroke="var(--app-success)"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                  />
                 </ComposedChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-[var(--app-text-soft)] py-8">
-                Aucune donnée disponible
-              </p>
+              <p className="text-center text-[var(--app-text-soft)] py-8">Aucune donnée disponible</p>
             )}
           </div>
 
@@ -427,18 +469,23 @@ const DirectionDashboard = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--app-surface)',
+                      border: '1px solid var(--app-border)',
+                      borderRadius: '8px',
+                      color: 'var(--app-text)',
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-[var(--app-text-soft)] py-8">
-                Aucune donnée disponible
-              </p>
+              <p className="text-center text-[var(--app-text-soft)] py-8">Aucune donnée disponible</p>
             )}
           </div>
         </div>
 
-        {/* Validations en attente */}
+        {/* ==================== VALIDATIONS EN ATTENTE ==================== */}
         {stats.pendingValidations.length > 0 && (
           <div className="rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-soft)] p-4">
             <h3 className="text-sm font-medium text-[var(--app-text)] mb-3">
@@ -446,14 +493,12 @@ const DirectionDashboard = () => {
             </h3>
             <div className="space-y-2">
               {stats.pendingValidations.map((validation) => (
-                <div 
-                  key={validation.id} 
+                <div
+                  key={validation.id}
                   className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-[var(--app-surface)] rounded-lg gap-3"
                 >
                   <div>
-                    <p className="text-sm font-medium text-[var(--app-text)]">
-                      {validation.title}
-                    </p>
+                    <p className="text-sm font-medium text-[var(--app-text)]">{validation.title}</p>
                     <p className="text-xs text-[var(--app-text-soft)]">
                       Montant: {validation.amount}€ | Demandé par: {validation.requested_by}
                       {validation.date && ` | ${new Date(validation.date).toLocaleDateString()}`}
@@ -479,7 +524,7 @@ const DirectionDashboard = () => {
           </div>
         )}
 
-        {/* Footer */}
+        {/* ==================== FOOTER ==================== */}
         <p className="text-sm text-[var(--app-text-soft)] text-center pt-4 border-t border-[var(--app-border)]/70">
           Les statistiques détaillées sont accessibles dans l'onglet Statistiques.
         </p>
