@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -13,18 +12,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
-   build: {
+  build: {
     outDir: 'dist',
     sourcemap: false,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@hookform/resolvers', 'react-hook-form', 'zod'],
-          charts: ['recharts'],
-          utils: ['axios', 'date-fns', 'framer-motion']
-        }
-      }
-    }
+    
   }
 })
