@@ -4,157 +4,182 @@ import axios from 'axios'
 // ✅ Utiliser variable d'environnement pour la baseURL
 const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
-// Normaliser l'URL fournie par l'environnement au cas où elle serait incomplète
-// Exemples corrigés automatiquement:
-//  - ":8000/api" -> "http://localhost:8000/api"
-//  - "localhost:8000/api" -> "http://localhost:8000/api"
-//  - "//example.com/api" -> "http://example.com/api" (préserve le host, ajoute protocole)
-let API_URL = rawApiUrl;
-try {
-  if (typeof API_URL === 'string') {
-    API_URL = API_URL.trim();
+// ✅ Normalisation simple et robuste de l'URL
+let API_URL = rawApiUrl.trim();
+
+// Si l'URL n'a pas de protocole, ajouter http://
+if (API_URL && !/^https?:\/\//i.test(API_URL)) {
+    // Si ça commence par ":" → ajouter "http://localhost"
     if (API_URL.startsWith(':')) {
-      API_URL = `http://localhost${API_URL}`;
-    } else if (API_URL.startsWith('//')) {
-      API_URL = `${window.location.protocol}${API_URL}`;
-    } else if (!/^https?:\/\//i.test(API_URL) && /^[^\/]+:\d+/.test(API_URL)) {
-      // cas "host:port/path" ou "host:port"
-      API_URL = `http://${API_URL}`;
+        API_URL = `http://localhost${API_URL}`;
+    } 
+    // Si ça commence par "//" → utiliser le protocole de la page
+    else if (API_URL.startsWith('//')) {
+        API_URL = `${window.location.protocol}${API_URL}`;
+    } 
+    // Si c'est "host:port" ou "host:port/path"
+    else if (/^[^\/]+:\d+/.test(API_URL)) {
+        API_URL = `http://${API_URL}`;
     }
-  }
-} catch {
-  // En cas d'environnement non-browser (build), fallback silencieux
-  API_URL = rawApiUrl;
+    // Sinon, ajouter "http://" par défaut
+    else {
+        API_URL = `http://${API_URL}`;
+    }
 }
 
+// 🔧 Supprimer le slash final si présent
+if (API_URL.endsWith('/')) {
+    API_URL = API_URL.slice(0, -1);
+}
+
+// ✅ Log pour débogage (uniquement en développement)
+if (import.meta.env.DEV) {
+    console.log(`🌐 API_URL configurée : ${API_URL}`);
+}
+
+// ✅ Instance principale
 const axiosInstance = axios.create({
-  baseURL: API_URL,
-  timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-  },
-  withCredentials: true,
-})
+    baseURL: API_URL,
+    timeout: 30000,
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    },
+    withCredentials: true,
+});
 
-// ✅ Instance axios pour les uploads de fichiers (sans Content-Type par défaut)
+// ✅ Instance pour les uploads de fichiers (sans Content-Type par défaut)
 export const axiosFileInstance = axios.create({
-  baseURL: API_URL,
-  timeout: 30000,
-  headers: {
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest',
-  },
-  withCredentials: true,
-})
+    baseURL: API_URL,
+    timeout: 30000,
+    headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    },
+    withCredentials: true,
+});
 
-// ✅ INTERCEPTEUR DE REQUÊTE : Ajouter le token (axiosInstance)
+// ============================================================
+// INTERCEPTEUR REQUÊTE : Ajouter le token (axiosInstance)
+// ============================================================
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = sessionStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-      // ✅ Optionnel : Log pour debug (à retirer en production)
-      if (import.meta.env.DEV) {
-        console.log(`🔑 Requête ${config.method?.toUpperCase()} ${config.url} - Token ajouté`)
-      }
+    (config) => {
+        // ✅ Priorité à localStorage (persistant), fallback sessionStorage
+        const token = localStorage.getItem('access_token') || sessionStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+            if (import.meta.env.DEV) {
+                console.log(`🔑 Requête ${config.method?.toUpperCase()} ${config.url} - Token ajouté`);
+            }
+        }
+        return config;
+    },
+    (error) => {
+        console.error('❌ Erreur de requête:', error);
+        return Promise.reject(error);
     }
-    return config
-  },
-  (error) => {
-    console.error('❌ Erreur de requête:', error)
-    return Promise.reject(error)
-  }
-)
+);
 
-// ✅ INTERCEPTEUR DE REQUÊTE : Ajouter le token (axiosFileInstance)
+// ============================================================
+// INTERCEPTEUR REQUÊTE : Ajouter le token (axiosFileInstance)
+// ============================================================
 axiosFileInstance.interceptors.request.use(
-  (config) => {
-    const token = sessionStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-      if (import.meta.env.DEV) {
-        console.log(`📸 Requête fichier ${config.method?.toUpperCase()} ${config.url} - Token ajouté`)
-      }
+    (config) => {
+        const token = localStorage.getItem('access_token') || sessionStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+            if (import.meta.env.DEV) {
+                console.log(`📸 Requête fichier ${config.method?.toUpperCase()} ${config.url} - Token ajouté`);
+            }
+        }
+        return config;
+    },
+    (error) => {
+        console.error('❌ Erreur de requête:', error);
+        return Promise.reject(error);
     }
-    return config
-  },
-  (error) => {
-    console.error('❌ Erreur de requête:', error)
-    return Promise.reject(error)
-  }
-)
+);
 
-// ✅ INTERCEPTEUR DE RÉPONSE : Gérer les erreurs
+// ============================================================
+// INTERCEPTEUR RÉPONSE : Gérer les erreurs (axiosInstance)
+// ============================================================
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // ✅ Gérer les erreurs réseau
-    if (!error.response) {
-      console.error('❌ Erreur réseau - Vérifiez que Laravel est démarré sur http://localhost:8000')
-      console.error('❌ Détails:', error.message)
-      const networkError = new Error('Impossible de se connecter au serveur. Vérifiez que le backend est démarré.')
-      networkError.response = { 
-        status: 0, 
-        data: { message: 'Erreur réseau - Serveur inaccessible' } 
-      }
-      return Promise.reject(networkError)
-    }
-    
-    // ✅ Gérer les erreurs 401 (non authentifié)
-    if (error.response?.status === 401) {
-      console.log('🔴 401 Non autorisé - Redirection vers login')
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('user')
-      window.location.href = '/login'
-    }
-    
-    // ✅ Gérer les erreurs 403 (accès interdit)
-    if (error.response?.status === 403) {
-      console.log('🔴 403 Accès interdit')
-      // Optionnel: rediriger vers une page d'erreur
-    }
-    
-    // ✅ Gérer les erreurs 422 (validation)
-    if (error.response?.status === 422) {
-      console.log('🔴 422 Erreur de validation:', error.response?.data?.errors)
-    }
-    
-    // ✅ Gérer les erreurs 500 (serveur)
-    if (error.response?.status === 500) {
-      console.error('🔴 500 Erreur serveur:', error.response?.data?.message)
-    }
-    
-    return Promise.reject(error)
-  }
-)
+    (response) => response,
+    (error) => {
+        // ✅ Gérer les erreurs réseau
+        if (!error.response) {
+            console.error('❌ Erreur réseau - Vérifiez que le backend est accessible');
+            console.error(`   URL configurée : ${API_URL}`);
+            console.error('❌ Détails:', error.message);
+            const networkError = new Error('Impossible de se connecter au serveur. Vérifiez que le backend est démarré.');
+            networkError.response = { 
+                status: 0, 
+                data: { message: 'Erreur réseau - Serveur inaccessible' } 
+            };
+            return Promise.reject(networkError);
+        }
 
-// ✅ INTERCEPTEUR DE RÉPONSE : Gérer les erreurs (axiosFileInstance)
+        // ✅ Gérer les erreurs 401 (non authentifié)
+        if (error.response?.status === 401) {
+            console.log('🔴 401 Non autorisé - Redirection vers login');
+            localStorage.removeItem('access_token');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            // Rediriger si pas déjà sur /login
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+
+        // ✅ Gérer les erreurs 403 (accès interdit)
+        if (error.response?.status === 403) {
+            console.log('🔴 403 Accès interdit');
+            // Optionnel: afficher une notification à l'utilisateur
+        }
+
+        // ✅ Gérer les erreurs 422 (validation)
+        if (error.response?.status === 422) {
+            console.log('🔴 422 Erreur de validation:', error.response?.data?.errors);
+        }
+
+        // ✅ Gérer les erreurs 500 (serveur)
+        if (error.response?.status === 500) {
+            console.error('🔴 500 Erreur serveur:', error.response?.data?.message || 'Erreur interne');
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+// ============================================================
+// INTERCEPTEUR RÉPONSE : Gérer les erreurs (axiosFileInstance)
+// ============================================================
 axiosFileInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // ✅ Gérer les erreurs réseau
-    if (!error.response) {
-      console.error('❌ Erreur réseau fichier - Vérifiez que Laravel est démarré')
-      const networkError = new Error('Impossible de se connecter au serveur.')
-      networkError.response = { 
-        status: 0, 
-        data: { message: 'Erreur réseau - Serveur inaccessible' } 
-      }
-      return Promise.reject(networkError)
-    }
-    
-    // ✅ Gérer les erreurs 401 (non authentifié)
-    if (error.response?.status === 401) {
-      console.log('🔴 401 Non autorisé')
-      sessionStorage.removeItem('token')
-      sessionStorage.removeItem('user')
-      window.location.href = '/login'
-    }
-    
-    return Promise.reject(error)
-  }
-)
+    (response) => response,
+    (error) => {
+        if (!error.response) {
+            console.error('❌ Erreur réseau fichier - Vérifiez que le backend est accessible');
+            const networkError = new Error('Impossible de se connecter au serveur.');
+            networkError.response = { 
+                status: 0, 
+                data: { message: 'Erreur réseau - Serveur inaccessible' } 
+            };
+            return Promise.reject(networkError);
+        }
 
-export default axiosInstance
+        if (error.response?.status === 401) {
+            console.log('🔴 401 Non autorisé');
+            localStorage.removeItem('access_token');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+export default axiosInstance;
