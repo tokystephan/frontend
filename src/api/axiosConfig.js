@@ -9,19 +9,15 @@ let API_URL = rawApiUrl.trim();
 
 // Si l'URL n'a pas de protocole, ajouter http://
 if (API_URL && !/^https?:\/\//i.test(API_URL)) {
-    // Si ça commence par ":" → ajouter "http://localhost"
     if (API_URL.startsWith(':')) {
         API_URL = `http://localhost${API_URL}`;
     } 
-    // Si ça commence par "//" → utiliser le protocole de la page
     else if (API_URL.startsWith('//')) {
         API_URL = `${window.location.protocol}${API_URL}`;
     } 
-    // Si c'est "host:port" ou "host:port/path"
     else if (/^[^\/]+:\d+/.test(API_URL)) {
         API_URL = `http://${API_URL}`;
     }
-    // Sinon, ajouter "http://" par défaut
     else {
         API_URL = `http://${API_URL}`;
     }
@@ -37,7 +33,9 @@ if (import.meta.env.DEV) {
     console.log(`🌐 API_URL configurée : ${API_URL}`);
 }
 
-// ✅ Instance principale
+// ============================================================
+// ✅ INSTANCE PRINCIPALE - withCredentials: false (pour éviter CORS)
+// ============================================================
 const axiosInstance = axios.create({
     baseURL: API_URL,
     timeout: 30000,
@@ -46,10 +44,12 @@ const axiosInstance = axios.create({
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     },
-    withCredentials: true,
+    withCredentials: false,  
 });
 
-// ✅ Instance pour les uploads de fichiers (sans Content-Type par défaut)
+// ============================================================
+// ✅ INSTANCE POUR UPLOADS - withCredentials: false
+// ============================================================
 export const axiosFileInstance = axios.create({
     baseURL: API_URL,
     timeout: 30000,
@@ -57,7 +57,7 @@ export const axiosFileInstance = axios.create({
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     },
-    withCredentials: true,
+    withCredentials: false, 
 });
 
 // ============================================================
@@ -65,7 +65,6 @@ export const axiosFileInstance = axios.create({
 // ============================================================
 axiosInstance.interceptors.request.use(
     (config) => {
-        // ✅ Priorité à localStorage (persistant), fallback sessionStorage
         const token = localStorage.getItem('access_token') || sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -126,7 +125,6 @@ axiosInstance.interceptors.response.use(
             localStorage.removeItem('access_token');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
-            // Rediriger si pas déjà sur /login
             if (!window.location.pathname.includes('/login')) {
                 window.location.href = '/login';
             }
@@ -135,7 +133,6 @@ axiosInstance.interceptors.response.use(
         // ✅ Gérer les erreurs 403 (accès interdit)
         if (error.response?.status === 403) {
             console.log('🔴 403 Accès interdit');
-            // Optionnel: afficher une notification à l'utilisateur
         }
 
         // ✅ Gérer les erreurs 422 (validation)
@@ -146,6 +143,11 @@ axiosInstance.interceptors.response.use(
         // ✅ Gérer les erreurs 500 (serveur)
         if (error.response?.status === 500) {
             console.error('🔴 500 Erreur serveur:', error.response?.data?.message || 'Erreur interne');
+        }
+
+        // ✅ Afficher l'erreur complète pour le debug
+        if (import.meta.env.DEV) {
+            console.error('🔴 Erreur complète:', error.response?.data || error.message);
         }
 
         return Promise.reject(error);

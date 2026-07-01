@@ -68,9 +68,18 @@ const ConsultantDashboard = () => {
   const fetchDashboardData = useCallback(async () => {
     try {
       const response = await axios.get(`${endpointPrefix}/dashboard`);
-      setStats(response.data);
+      const nextStats = {
+        myPosts: response?.data?.myPosts ?? 0,
+        pendingEvaluations: response?.data?.pendingEvaluations ?? 0,
+        upcomingEvents: response?.data?.upcomingEvents ?? 0,
+        toEvaluate: response?.data?.toEvaluate ?? 0,
+        needsDepartment: Boolean(response?.data?.needsDepartment),
+        message: response?.data?.message || '',
+      };
+      setStats(nextStats);
     } catch (error) {
       console.error('Erreur chargement dashboard:', error);
+      setStats((prev) => ({ ...prev, needsDepartment: false, message: '' }));
       toast.error('Erreur chargement des statistiques');
     }
   }, [endpointPrefix]);

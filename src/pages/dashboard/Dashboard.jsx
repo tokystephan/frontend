@@ -23,23 +23,25 @@ const Dashboard = () => {
   // ✅ Fonction pour extraire le rôle en toute sécurité
   const getUserRole = () => {
     if (!user) return null
-    
-    // Cas 1: user.role est une chaîne
+
+    if (user.role_id === 1 || user.role_id === '1') return ROLES.ADMIN
+    if (user.role_id === 2 || user.role_id === '2') return ROLES.ASSISTANT
+    if (user.role_id === 3 || user.role_id === '3' || user.role_id === 4 || user.role_id === '4') return ROLES.MANAGER
+    if (user.role_id === 5 || user.role_id === '5') return ROLES.DIRECTION
+
     if (typeof user.role === 'string') {
       return normalizeRole(user.role)
     }
-    
-    // Cas 2: user.role est un objet avec name
+
     if (user.role && typeof user.role === 'object') {
       if (user.role.name) return normalizeRole(user.role.name)
       if (user.role.display_name) return normalizeRole(user.role.display_name)
     }
-    
-    // Cas 3: user.roleName existe
+
     if (user.roleName && typeof user.roleName === 'string') {
       return normalizeRole(user.roleName)
     }
-    
+
     return null
   }
   
