@@ -8,7 +8,8 @@ const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 let API_URL = rawApiUrl.trim();
 
 // Si l'URL n'a pas de protocole, ajouter http://
-if (API_URL && !/^https?:\/\//i.test(API_URL)) {
+// Utiliser RegExp construit pour éviter les échappements inutiles dans les littéraux
+if (API_URL && !new RegExp('^https?://', 'i').test(API_URL)) {
     if (API_URL.startsWith(':')) {
         API_URL = `http://localhost${API_URL}`;
     } 
