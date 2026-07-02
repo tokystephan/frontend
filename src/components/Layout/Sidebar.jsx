@@ -59,6 +59,7 @@ const LINKS_BY_ROLE = {
   manager: [
     { to: '/dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
     { to: '/posts', label: 'Postes', icon: Briefcase },
+    { to: '/candidates', label: 'Candidats', icon: Users },
     { to: '/applications', label: 'Candidatures', icon: FileText },
     { to: '/interviews', label: 'Entretiens', icon: Calendar },
     { to: '/profile', label: 'Profil', icon: UserCog },

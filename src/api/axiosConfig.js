@@ -66,7 +66,7 @@ export const axiosFileInstance = axios.create({
 // ============================================================
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token') || sessionStorage.getItem('token');
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token') || sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
             if (import.meta.env.DEV) {
@@ -86,7 +86,7 @@ axiosInstance.interceptors.request.use(
 // ============================================================
 axiosFileInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token') || sessionStorage.getItem('token');
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token') || sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
             if (import.meta.env.DEV) {
@@ -124,6 +124,8 @@ axiosInstance.interceptors.response.use(
         if (error.response?.status === 401) {
             console.log('🔴 401 Non autorisé - Redirection vers login');
             localStorage.removeItem('access_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {
@@ -174,6 +176,8 @@ axiosFileInstance.interceptors.response.use(
         if (error.response?.status === 401) {
             console.log('🔴 401 Non autorisé');
             localStorage.removeItem('access_token');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {

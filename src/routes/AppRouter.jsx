@@ -58,6 +58,7 @@ const AppRouter = () => {
   const {
     roleName,
     canManagePosts,
+    canViewCandidates,
     canManageCandidates,
     canCreateApplication,
     canEditApplication,
@@ -187,7 +188,7 @@ const AppRouter = () => {
       <Route
         path="/candidates"
         element={
-          isAuthenticated && canManageCandidates ? <CandidateList /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && canViewCandidates ? <CandidateList /> : <Navigate to="/dashboard" replace />
         }
       />
       <Route
@@ -199,7 +200,7 @@ const AppRouter = () => {
       <Route
         path="/candidates/:id"
         element={
-          isAuthenticated && canManageCandidates ? <CandidateDetail /> : <Navigate to="/dashboard" replace />
+          isAuthenticated && canViewCandidates ? <CandidateDetail /> : <Navigate to="/dashboard" replace />
         }
       />
       <Route

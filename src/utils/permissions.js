@@ -4,6 +4,7 @@ const permissions = {
   [ROLES.ADMIN]: {
     canManageUsers: true,
     canManagePosts: true,
+    canViewCandidates: true,
     canManageCandidates: true,
     canManageApplications: true,
     canCreateApplication: true,
@@ -35,6 +36,7 @@ const permissions = {
   [ROLES.ASSISTANT]: {
     canManageUsers: false,
     canManagePosts: true,
+    canViewCandidates: true,
     canManageCandidates: true,
     canManageApplications: true,
     canCreateApplication: true,
@@ -66,6 +68,7 @@ const permissions = {
   [ROLES.MANAGER]: {
     canManageUsers: false,
     canManagePosts: false,
+    canViewCandidates: true,
     canManageCandidates: false,
     canManageApplications: true,
     canCreateApplication: false,
@@ -97,6 +100,7 @@ const permissions = {
   [ROLES.DIRECTION]: {
     canManageUsers: false,
     canManagePosts: false,
+    canViewCandidates: false,
     canManageCandidates: false,
     canManageApplications: true,
     canCreateApplication: false,
