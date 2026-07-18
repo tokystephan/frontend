@@ -9,7 +9,7 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'https://tokystephan.infinityfreeapp.com',
+        target: 'https://gestioncandidatures.rf.gd',
         changeOrigin: true,
       }
     }
@@ -19,4 +19,4 @@ export default defineConfig({
     sourcemap: false,
     chunkSizeWarningLimit: 1000,
   },
-})
+})  
