@@ -9,7 +9,7 @@ import { Home, Calendar, Plus } from 'lucide-react';
 
 export default function InterviewsDashboard() {
   const navigate = useNavigate();
-  const { interviews, loading, error, filters, setFilters, changerStatut, supprimerEntretien, ajouterEntretien, majCompteRendu } = useInterviews();
+  const { interviews, loading, error, filters, setFilters, changerStatut, supprimerEntretien, majCompteRendu } = useInterviews();
   const { canCreateInterview } = usePermissions();
 
   const stats = useMemo(() => ({
@@ -56,7 +56,7 @@ export default function InterviewsDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -141,7 +141,7 @@ export default function InterviewsDashboard() {
             )}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 xl:grid-cols-1 gap-4">
             {interviews.map(e => (
               <InterviewCard
                 key={e.id}

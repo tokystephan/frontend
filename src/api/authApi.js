@@ -12,6 +12,10 @@ const normalizeRole = (roleData) => {
     'assistant rh': 'assistant',
     'directeur rh': 'direction',
     directeur: 'direction',
+    consultant: 'manager',
+    'consultant technique': 'manager',
+    recruteur: 'assistant',
+    administrateur: 'admin',
   }
   
   // ✅ Si c'est déjà une string
@@ -121,13 +125,13 @@ export const loginApi = async (credentials) => {
 
     // ✅ STOCKER LE TOKEN (persistant)
     if (normalizedResponse.token) {
-      localStorage.setItem('token', normalizedResponse.token)
-      console.log('🔑 Token stocké (localStorage)')
+      sessionStorage.setItem('token', normalizedResponse.token)
+      console.log('🔑 Token stocké (sessionStorage)')
     }
 
     // ✅ STOCKER L'UTILISATEUR (persistant)
     if (normalizedResponse.user) {
-      localStorage.setItem('user', JSON.stringify(normalizedResponse.user))
+      sessionStorage.setItem('user', JSON.stringify(normalizedResponse.user))
       console.log('👤 Utilisateur stocké:', normalizedResponse.user)
     }
 
@@ -147,13 +151,15 @@ export const registerApi = async (userData) => {
 
     // ✅ NETTOYER LES DONNÉES
     const cleanedData = {
-      email: userData.email.trim(),
-      username: userData.username.trim(),
-      first_name: userData.first_name.trim(),
-      last_name: userData.last_name.trim(),
+      email: (userData.email || '').trim().toLowerCase(),
+      username: (userData.username || '').trim(),
+      first_name: (userData.first_name || '').trim(),
+      last_name: (userData.last_name || '').trim(),
       password: userData.password,
       password_confirmation: userData.password_confirmation,
-      role_name: typeof userData.role_name === 'string' ? userData.role_name.trim() : String(userData.role_name || '')
+      role_name: typeof userData.role_name === 'string'
+        ? userData.role_name.trim().toLowerCase()
+        : String(userData.role_name || '').trim().toLowerCase()
     }
 
     const response = await axiosInstance.post('/register', cleanedData)
@@ -185,10 +191,10 @@ export const registerApi = async (userData) => {
 
     // ✅ STOCKER (persistant)
     if (normalizedResponse.token) {
-      localStorage.setItem('token', normalizedResponse.token)
+      sessionStorage.setItem('token', normalizedResponse.token)
     }
     if (normalizedResponse.user) {
-      localStorage.setItem('user', JSON.stringify(normalizedResponse.user))
+      sessionStorage.setItem('user', JSON.stringify(normalizedResponse.user))
     }
 
     return normalizedResponse
@@ -208,15 +214,15 @@ export const logoutApi = async () => {
     console.log('✅ logoutApi - Réponse reçue:', response.data)
 
     // ✅ Nettoyer la session courante
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
 
     return response.data
   } catch (error) {
     console.error('❌ logoutApi - Erreur:', error.message)
     // ✅ Nettoyer même en cas d'erreur
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
+    sessionStorage.removeItem('token')
+    sessionStorage.removeItem('user')
     throw error
   }
 }
@@ -256,7 +262,7 @@ export const getCurrentUserApi = async () => {
 
     // ✅ Mettre à jour la session persistante
     if (normalizedResponse.user) {
-      localStorage.setItem('user', JSON.stringify(normalizedResponse.user))
+      sessionStorage.setItem('user', JSON.stringify(normalizedResponse.user))
     }
 
     return normalizedResponse
@@ -265,8 +271,8 @@ export const getCurrentUserApi = async () => {
 
     if (error.response?.status === 401) {
       // ✅ Nettoyer la session courante
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
     }
 
     throw error
@@ -316,7 +322,7 @@ export const updateProfileApi = async (profileData) => {
 
     // ✅ Mettre à jour la session courante
     if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+      sessionStorage.setItem('user', JSON.stringify(response.data.user))
     }
 
     return response.data

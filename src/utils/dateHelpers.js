@@ -6,6 +6,18 @@ export const formatDate = (dateStr) => {
   return format(new Date(dateStr), 'dd MMMM yyyy à HH\'h\'mm', { locale: fr });
 };
 
+export const formatDateTime = (dateStr) => {
+  if (!dateStr) return { date: '', time: '' };
+  const date = new Date(dateStr);
+  return {
+    date: format(date, 'dd MMMM yyyy', { locale: fr }),
+    time: format(date, 'HH\'h\'mm', { locale: fr }),
+    dateOnly: format(date, 'dd/MM/yyyy', { locale: fr }),
+    timeOnly: format(date, 'HH:mm', { locale: fr }),
+    full: format(date, 'dd MMMM yyyy à HH\'h\'mm', { locale: fr })
+  };
+};
+
 export const getDuration = (start, end) => {
   if (!start || !end) return '';
   const minutes = differenceInMinutes(new Date(end), new Date(start));

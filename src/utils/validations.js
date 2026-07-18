@@ -87,8 +87,16 @@ export const applicationSchema = z.object({
 
 // ✅ CANDIDATE (CANDIDAT)
 export const candidateSchema = z.object({
-  first_name: z.string().min(1, 'Prénom requis'),
-  last_name: z.string().min(1, 'Nom requis'),
+  first_name: z
+    .string()
+    .trim()
+    .min(1, 'Prénom requis')
+    .regex(/^[A-Za-zÀ-ÿ\s'-]+$/, 'Le prénom ne doit contenir que des lettres'),
+  last_name: z
+    .string()
+    .trim()
+    .min(1, 'Nom requis')
+    .regex(/^[A-Za-zÀ-ÿ\s'-]+$/, 'Le nom ne doit contenir que des lettres'),
   email: z.string().email('Email invalide'),
   phone: z.string().nullable().optional(),           // ← accepte null, undefined ou chaîne vide
   source: z.union([z.number(), z.string()]).nullable().optional(),

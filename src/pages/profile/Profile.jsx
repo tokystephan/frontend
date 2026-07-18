@@ -44,6 +44,8 @@ export default function Profile() {
   const user = useAppSelector((state) => state.auth.user);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarVersion, setAvatarVersion] = useState(0);
   const fileInputRef = useRef(null);
   const [uploadError, setUploadError] = useState(null);
 
@@ -55,29 +57,24 @@ export default function Profile() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
       toast.error('Format de fichier non valide. Utilisez JPEG ou PNG.');
       return;
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Le fichier est trop volumineux. Maximum 5MB.');
       return;
     }
 
-    // Show preview
     const reader = new FileReader();
     reader.onload = (e) => {
-      setPreviewUrl(e.target?.result);
+      setPreviewUrl(e.target?.result || null);
     };
     reader.readAsDataURL(file);
 
-    // Upload the file
     await uploadAvatar(file);
 
-    // Reset file input
     event.target.value = '';
   };
 
@@ -86,10 +83,22 @@ export default function Profile() {
     setUploadError(null);
     try {
       const data = await uploadAvatarApi(file);
-      if (data.data) {
-        dispatch(updateUserProfile(data.data));
-        toast.success('Avatar mis à jour avec succès!');
+      const userPayload = data?.data || data?.user || data;
+      const uploadedImageUrl = data?.profile_image_url || userPayload?.profile_image_url || userPayload?.profile_image || null;
+
+      if (userPayload) {
+        const mergedUser = {
+          ...(user || {}),
+          ...userPayload,
+          profile_image: uploadedImageUrl || userPayload?.profile_image || user?.profile_image || null,
+          profile_image_url: uploadedImageUrl || userPayload?.profile_image_url || user?.profile_image_url || null,
+        };
+
+        dispatch(updateUserProfile(mergedUser));
+        setAvatarUrl(uploadedImageUrl || null);
+        setAvatarVersion((value) => value + 1);
         setPreviewUrl(null);
+        toast.success('Avatar mis à jour avec succès!');
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
@@ -118,6 +127,13 @@ export default function Profile() {
     setUploadError(null);
   };
 
+  const currentAvatarImage = previewUrl || avatarUrl || user?.profile_image_url || user?.profile_image || null;
+  const avatarUser = {
+    ...(user || {}),
+    profile_image: currentAvatarImage,
+    profile_image_url: currentAvatarImage,
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return null;
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -129,11 +145,11 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 py-8 md:px-6 md:py-12">
+      <div className="max-w-5xl mx-auto px-3 py-6 sm:px-4 md:px-6 md:py-10 lg:px-8">
         
         {/* ==================== EN-TÊTE ==================== */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                 <span className="w-2 h-2 rounded-full bg-blue-600"></span>
@@ -146,7 +162,7 @@ export default function Profile() {
             </div>
             <Link
               to="/dashboard"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+              className="inline-flex w-full items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition md:w-auto"
             >
               <Home className="w-4 h-4" />
               Retour au Dashboard
@@ -155,8 +171,8 @@ export default function Profile() {
         </div>
 
         {/* ==================== SECTION AVATAR ==================== */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col items-center">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">
+          <div className="flex flex-col items-center text-center">
             <div className="relative">
               {/* Hidden file input */}
               <input
@@ -175,7 +191,7 @@ export default function Profile() {
                 tabIndex={0}
                 className={`relative cursor-pointer group ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Avatar user={previewUrl ? { ...user, profile_image: previewUrl } : user} size="xl" />
+                <Avatar key={`${avatarVersion}-${currentAvatarImage || 'none'}`} user={avatarUser} size="xl" />
                 
                 {/* Upload overlay */}
                 <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -218,7 +234,7 @@ export default function Profile() {
         </div>
 
         {/* ==================== INFORMATIONS PERSONNELLES ==================== */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
+        <div className="grid gap-6 sm:grid-cols-2 mb-8">
           <InfoCard
             icon={User}
             label="Nom complet"
@@ -243,14 +259,14 @@ export default function Profile() {
 
         {/* ==================== INFORMATIONS COMPLÉMENTAIRES ==================== */}
         {(user?.phone || user?.created_at) && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-blue-600" />
               </div>
               Informations complémentaires
             </h2>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-2">
               {user?.phone && (
                 <InfoCard
                   icon={Phone}
@@ -270,7 +286,7 @@ export default function Profile() {
         )}
 
         {/* ==================== STATISTIQUES (simulées) ==================== */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,7 +295,7 @@ export default function Profile() {
             </div>
             Aperçu rapide
           </h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600 mb-1">--</div>
               <div className="text-sm text-gray-500">Candidatures traitées</div>

@@ -20,6 +20,7 @@ const useAuth = () => {
     loading,
     error,
     successMessage,
+    validationErrors,
     initialized,
   } = useSelector((state) => state.auth)
 
@@ -71,6 +72,7 @@ const useAuth = () => {
     loading,
     error,
     successMessage,
+    validationErrors,
     initialized,
     login,
     register,

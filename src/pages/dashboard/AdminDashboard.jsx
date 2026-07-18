@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import {
   Briefcase,
@@ -29,6 +29,7 @@ import {
 import toast from 'react-hot-toast'
 import axios from '../../api/axiosConfig'
 import AppLayout from '../../components/Layout/AppLayout'
+import { getUserRole } from '../../utils/roleRedirect'
 
 const COLORS = ['#2A5C8E', '#4A7FAF', '#22C55E', '#EF4444', '#F59E0B', '#8B5CF6']
 
@@ -56,12 +57,45 @@ const DEFAULT_DASHBOARD = {
   users: [],
 }
 
-const normalizeRole = (roleValue) => {
-  if (typeof roleValue === 'string') return roleValue.toLowerCase()
-  if (roleValue && typeof roleValue === 'object' && typeof roleValue.name === 'string') {
-    return roleValue.name.toLowerCase()
+const normalizeRole = (item = {}) => {
+  const roleId = item?.role_id ?? item?.role?.id ?? item?.roleId
+  if (roleId !== undefined && roleId !== null && roleId !== '') {
+    const mappedRole = {
+      1: 'admin',
+      2: 'assistant',
+      3: 'manager',
+      4: 'manager',
+      5: 'direction',
+    }[Number(roleId)]
+    if (mappedRole) return mappedRole
   }
-  return 'direction'
+
+  const rawRole = item?.role_name || item?.role?.name || item?.role?.slug || item?.role?.role || item?.role || item?.roleValue
+  if (rawRole == null) return 'direction'
+
+  if (typeof rawRole === 'object') {
+    const nestedRole = rawRole.name || rawRole.slug || rawRole.role || rawRole.label || rawRole.value
+    return normalizeRole({ ...item, role: nestedRole })
+  }
+
+  const normalized = String(rawRole).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+  const aliases = {
+    'responsable rh': 'admin',
+    'responsable': 'admin',
+    'assistant rh': 'assistant',
+    'assistant': 'assistant',
+    'directeur rh': 'direction',
+    'directeur': 'direction',
+    'consultant': 'manager',
+    'consultant technique': 'manager',
+    'recruteur': 'assistant',
+    'administrateur': 'admin',
+    'admin': 'admin',
+    'manager': 'manager',
+    'direction': 'direction',
+  }
+
+  return aliases[normalized] || (['admin', 'assistant', 'manager', 'direction'].includes(normalized) ? normalized : 'direction')
 }
 
 const normalizeListPayload = (payload) => {
@@ -154,8 +188,10 @@ const getRoleLabel = (role) => {
       return 'Manager'
     case 'manager':
       return 'Manager'
-    default:
+    case 'direction':
       return 'Direction'
+    default:
+      return 'Utilisateur'
   }
 }
 
@@ -169,12 +205,15 @@ const getRoleBadgeClass = (role) => {
       return 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
     case 'manager':
       return 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
-    default:
+    case 'direction':
       return 'bg-[var(--app-muted)]/15 text-[var(--app-muted)]'
+    default:
+      return 'bg-[var(--app-bg-soft)] text-[var(--app-text-soft)]'
   }
 }
 
 const AdminDashboard = () => {
+  const navigate = useNavigate()
   const { user } = useSelector((state) => state.auth)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('month')
@@ -184,6 +223,7 @@ const AdminDashboard = () => {
   const [applications, setApplications] = useState([])
   const [posts, setPosts] = useState([])
   const [users, setUsers] = useState([])
+  const [accessDenied, setAccessDenied] = useState(false)
   const [statusChartData, setStatusChartData] = useState([])
   const [departmentChartData, setDepartmentChartData] = useState([])
   const [monthlyTrendData, setMonthlyTrendData] = useState([])
@@ -210,16 +250,36 @@ const AdminDashboard = () => {
       const response = await axios.get('/admin/users')
       const list = normalizeListPayload(response.data).map((item) => ({
         ...item,
-        role: normalizeRole(item.role),
+        role: normalizeRole(item),
       }))
       setUsers(list)
-    } catch {
-      const fallback = await axios.get('/users')
-      const list = normalizeListPayload(fallback.data).map((item) => ({
-        ...item,
-        role: normalizeRole(item.role),
-      }))
-      setUsers(list)
+    } catch (error) {
+      const status = error?.response?.status
+      if (status === 429) {
+        toast.error('Trop de requêtes pour les utilisateurs. Réessayez dans quelques instants.')
+        setUsers([])
+        return
+      }
+      if (status === 403) {
+        setAccessDenied(true)
+        return
+      }
+      if (status === 404) {
+        try {
+          const fallback = await axios.get('/users')
+          const list = normalizeListPayload(fallback.data).map((item) => ({
+            ...item,
+            role: normalizeRole(item),
+          }))
+          setUsers(list)
+          return
+        } catch (fallbackError) {
+          console.error('Erreur fallback /users:', fallbackError)
+        }
+      }
+      console.error('Erreur fetchUsers:', error)
+      setUsers([])
+      toast.error('Impossible de charger les utilisateurs pour le moment.')
     }
   }, [])
 
@@ -240,6 +300,11 @@ const AdminDashboard = () => {
   }, [])
 
   const load = useCallback(async () => {
+    if (getUserRole(user) !== 'admin') {
+      navigate('/dashboard', { replace: true })
+      return
+    }
+
     setLoading(true)
     try {
       await Promise.all([fetchDashboardData(), fetchUsers()])
@@ -250,7 +315,7 @@ const AdminDashboard = () => {
     } finally {
       setLoading(false)
     }
-  }, [applyDashboardData, fetchDashboardData, fetchUsers])
+  }, [applyDashboardData, fetchDashboardData, fetchUsers, navigate, user])
 
   useEffect(() => {
     load()
@@ -302,6 +367,28 @@ const AdminDashboard = () => {
       <AppLayout>
         <div className="flex h-96 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--app-text-soft)] border-t-transparent" />
+        </div>
+      </AppLayout>
+    )
+  }
+
+  if (accessDenied) {
+    return (
+      <AppLayout>
+        <div className="flex h-96 items-center justify-center px-6 text-center">
+          <div className="max-w-lg rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm">
+            <h2 className="text-xl font-semibold text-red-700">Accès interdit</h2>
+            <p className="mt-3 text-sm text-red-600">
+              Vous n'avez pas les droits nécessaires pour accéder à ce tableau de bord.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard', { replace: true })}
+              className="mt-6 rounded-lg bg-[#2A5C8E] px-4 py-2 text-white transition hover:bg-[#4A7FAF]"
+            >
+              Retour au dashboard
+            </button>
+          </div>
         </div>
       </AppLayout>
     )

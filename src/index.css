@@ -175,28 +175,5 @@ td {
   box-shadow: 0 2px 4px rgba(42, 92, 142, 0.15);
 }
 
-/* Logo Cube 3D */
-.logo-cube {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  perspective: 72px;
-}
-
-.logo-cube div {
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid rgba(42, 92, 142, 0.65);
-  background: rgba(42, 92, 142, 0.15);
-  transform-style: preserve-3d;
-  animation: cubeSpin 12s linear infinite;
-  transform: rotateX(22deg) rotateY(0deg);
-}
-
-.logo-cube .face-front  { transform: translateZ(18px); background: rgba(42, 92, 142, 0.25); }
-.logo-cube .face-back   { transform: rotateY(180deg) translateZ(18px); background: rgba(42, 92, 142, 0.1); }
-.logo-cube .face-left   { transform: rotateY(-90deg) translateZ(18px); background: rgba(42, 92, 142, 0.15); }
-.logo-cube .face-right  { transform: rotateY(90deg) translateZ(18px); background: rgba(42, 92, 142, 0.15); }
-.logo-cube .face-top    { transform: rotateX(90deg) translateZ(18px); background: rgba(42, 92, 142, 0.2); }
-.logo-cube .face-bottom { transform: rotateX(-90deg) translateZ(18px); background: rgba(42, 92, 142, 0.08); }
+/* Logo - 3D cube removed */
+/* Replaced with simple styled logo */

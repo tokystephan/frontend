@@ -154,7 +154,7 @@ const PostDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== BOUTONS NAVIGATION ==================== */}
         <div className="flex flex-wrap items-center justify-between gap-3">

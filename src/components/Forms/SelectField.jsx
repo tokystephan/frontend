@@ -9,17 +9,23 @@ const SelectField = ({
   required = false,
 }) => {
   return (
-    <label className="block space-y-1">
-      {label ? <span className="text-sm font-medium text-slate-700">{label}</span> : null}
+    <label className="block space-y-2">
+      {label ? (
+        <span className="text-sm font-medium text-(--app-text)">
+          {label}
+          {required && <span className="ml-1 text-(--app-danger)">*</span>}
+        </span>
+      ) : null}
+
       <select
         name={name}
         value={value}
         onChange={onChange}
         required={required}
-        className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition ${
+        className={`w-full rounded-2xl border px-4 py-3 text-sm text-(--app-text) outline-none transition shadow-sm ${
           error
-            ? 'border-rose-300 bg-rose-50 focus:border-rose-500 focus:ring-2 focus:ring-rose-200'
-            : 'border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200'
+            ? 'border-(--app-danger)/70 bg-(--app-bg) focus:border-(--app-danger) focus:ring-2 focus:ring-(--app-danger)/20'
+            : 'border-(--app-border) bg-(--app-surface) focus:border-(--app-primary) focus:ring-2 focus:ring-(--app-primary)/20'
         }`}
       >
         <option value="">{placeholder}</option>
@@ -29,7 +35,7 @@ const SelectField = ({
           </option>
         ))}
       </select>
-      {error ? <span className="text-xs text-rose-600">{error}</span> : null}
+      {error ? <span className="text-xs text-(--app-danger)">{error}</span> : null}
     </label>
   )
 }

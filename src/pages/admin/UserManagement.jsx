@@ -15,11 +15,11 @@ const StatCard = ({ title, value, icon, color }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md transition">
-      <div className="flex items-center justify-between">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 hover:shadow-md transition">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-gray-500 text-xs uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+          <p className="text-gray-500 text-[11px] sm:text-xs uppercase tracking-wider">{title}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 mt-1">{value}</p>
         </div>
         <div className={`p-2 rounded-lg ${colorClasses[color]}`}>
           {icon}
@@ -65,13 +65,25 @@ const UserManagement = () => {
   ];
 
   const roleNeedsDepartment = (roleId) => Number(roleId) === 4;
+  const formFieldClassName = 'w-full min-h-11 px-3 py-3 sm:py-2 text-base sm:text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation';
   const normalizeRoleName = (roleName) => String(roleName || '').toLowerCase().trim();
+
+  const calculateStats = (usersList) => {
+    const active = usersList.filter(u => u.is_active).length;
+    const inactive = usersList.filter(u => !u.is_active).length;
+    const pending = usersList.filter(u => u.approval_status === 'pending').length;
+    const byRole = {};
+    usersList.forEach(user => {
+      const roleName = user.role?.display_name || user.role?.name || 'Inconnu';
+      byRole[roleName] = (byRole[roleName] || 0) + 1;
+    });
+    setStats({ total: usersList.length, active, inactive, pending, byRole });
+  };
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get('/admin/users');
-      // ✅ ACCÉDER CORRECTEMENT AUX UTILISATEURS
       const usersList = response.data.users || response.data.data || response.data;
       const usersArray = Array.isArray(usersList) ? usersList : [];
       setUsers(usersArray);
@@ -95,21 +107,13 @@ const UserManagement = () => {
     }
   }, []);
 
-  const calculateStats = (usersList) => {
-    const active = usersList.filter(u => u.is_active).length;
-    const inactive = usersList.filter(u => !u.is_active).length;
-    const pending = usersList.filter(u => u.approval_status === 'pending').length;
-    const byRole = {};
-    usersList.forEach(user => {
-      const roleName = user.role?.display_name || user.role?.name || 'Inconnu';
-      byRole[roleName] = (byRole[roleName] || 0) + 1;
-    });
-    setStats({ total: usersList.length, active, inactive, pending, byRole });
-  };
-
   useEffect(() => {
-    fetchUsers();
-    fetchDepartments();
+    const loadData = async () => {
+      await fetchUsers();
+      await fetchDepartments();
+    };
+
+    loadData();
   }, [fetchUsers, fetchDepartments]);
 
   const filteredUsers = users.filter(user => {
@@ -353,17 +357,17 @@ const UserManagement = () => {
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Gestion des utilisateurs</h1>
               <p className="mt-1 text-sm text-gray-500">Gérer les comptes, les rôles et les permissions.</p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition w-full sm:w-auto"
               >
                 <Home className="w-4 h-4" />
                 Dashboard
               </button>
               <button
                 onClick={() => handleOpenModal()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
                 Nouvel utilisateur
@@ -373,7 +377,7 @@ const UserManagement = () => {
         </div>
 
         {/* ==================== STATISTIQUES ==================== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6">
           <StatCard title="Total" value={stats.total} icon={<Users className="w-5 h-5" />} color="blue" />
           <StatCard title="Actifs" value={stats.active} icon={<UserCheck className="w-5 h-5" />} color="green" />
           <StatCard title="Inactifs" value={stats.inactive} icon={<UserX className="w-5 h-5" />} color="red" />
@@ -382,7 +386,7 @@ const UserManagement = () => {
 
         {/* ==================== BARRE DE RECHERCHE ET FILTRES ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -395,11 +399,11 @@ const UserManagement = () => {
                 />
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tous les rôles</option>
                 {roleOptions.map(role => (
@@ -409,7 +413,7 @@ const UserManagement = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Tous les statuts</option>
                 <option value="active">Actifs</option>
@@ -418,7 +422,7 @@ const UserManagement = () => {
               <select
                 value={approvalFilter}
                 onChange={(e) => setApprovalFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full sm:w-auto px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">Toutes validations</option>
                 <option value="pending">En attente</option>
@@ -431,7 +435,7 @@ const UserManagement = () => {
 
         {/* ==================== TABLEAU DES UTILISATEURS ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -544,6 +548,105 @@ const UserManagement = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="lg:hidden p-3 space-y-3">
+            {filteredUsers.length === 0 ? (
+              <div className="px-4 py-12 text-center text-gray-500">
+                <Users className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>Aucun utilisateur trouvé</p>
+              </div>
+            ) : (
+              filteredUsers.map((user) => (
+                <div key={user.id} className="rounded-xl border border-gray-200 p-4 shadow-sm bg-gray-50/70">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Avatar user={user} size="sm" />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{user.first_name} {user.last_name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium text-white ${getRoleBadgeClass(user.role?.name)}`}>
+                      {getRoleDisplayName(user.role?.name)}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Département</p>
+                      <p className="mt-1">{user.department?.name || user.department_name || (roleNeedsDepartment(user.role_id) ? 'Non assigné' : '-')}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Statut</p>
+                      <div className="mt-1">
+                        {user.is_active ? (
+                          <span className="flex items-center gap-1.5 text-green-700 text-xs bg-green-100 px-2 py-1 rounded-full w-fit">
+                            <CheckCircle className="w-3 h-3" /> Actif
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-red-700 text-xs bg-red-100 px-2 py-1 rounded-full w-fit">
+                            <XCircle className="w-3 h-3" /> Inactif
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Validation</p>
+                      <div className="mt-1">
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${getApprovalBadge(user.approval_status)}`}>
+                          {getApprovalLabel(user.approval_status)}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-gray-400">Dernière connexion</p>
+                      <p className="mt-1">{user.last_login ? new Date(user.last_login).toLocaleDateString('fr-FR') : 'Jamais'}</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => handleOpenModal(user)}
+                      className="inline-flex items-center gap-1 px-3 py-2 text-sm text-blue-600 bg-blue-50 rounded-lg"
+                    >
+                      <Edit className="w-4 h-4" /> Modifier
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(user)}
+                      className="inline-flex items-center gap-1 px-3 py-2 text-sm text-gray-700 bg-white rounded-lg border border-gray-200"
+                    >
+                      {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                      {user.is_active ? 'Désactiver' : 'Activer'}
+                    </button>
+                    {user.approval_status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleApprovalChange(user, 'approved')}
+                          className="inline-flex items-center gap-1 px-3 py-2 text-sm text-green-700 bg-green-50 rounded-lg"
+                        >
+                          <CheckCircle className="w-4 h-4" /> Valider
+                        </button>
+                        <button
+                          onClick={() => handleApprovalChange(user, 'rejected')}
+                          className="inline-flex items-center gap-1 px-3 py-2 text-sm text-red-700 bg-red-50 rounded-lg"
+                        >
+                          <XCircle className="w-4 h-4" /> Refuser
+                        </button>
+                      </>
+                    )}
+                    {user.id !== currentUser?.id && (
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        className="inline-flex items-center gap-1 px-3 py-2 text-sm text-red-700 bg-red-50 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" /> Supprimer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* ==================== NOTES DE SÉCURITÉ ==================== */}
@@ -555,8 +658,8 @@ const UserManagement = () => {
 
       {/* ==================== MODAL (responsive) ==================== */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-xl w-full max-w-[95vw] sm:max-w-xl max-h-[95dvh] overflow-y-auto p-4 sm:p-6 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 {editingUser ? "Modifier l'utilisateur" : 'Nouvel utilisateur'}
@@ -565,21 +668,21 @@ const UserManagement = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   name="first_name"
                   value={formData.first_name}
                   onChange={handleChange}
                   placeholder="Prénom"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={formFieldClassName}
                 />
                 <input
                   name="last_name"
                   value={formData.last_name}
                   onChange={handleChange}
                   placeholder="Nom"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={formFieldClassName}
                 />
               </div>
               <input
@@ -587,24 +690,24 @@ const UserManagement = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={formFieldClassName}
               />
               {formErrors.email && (
                 <p className="text-xs text-red-600">{Array.isArray(formErrors.email) ? formErrors.email[0] : formErrors.email}</p>
               )}
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <select
                   name="role_id"
                   value={formData.role_id}
                   onChange={handleChange}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`${formFieldClassName} sm:flex-1`}
                 >
                   <option value="">Sélectionner un rôle</option>
                   {roleOptions.map(r => (
                     <option key={r.id} value={r.id}>{r.display_name}</option>
                   ))}
                 </select>
-                <label className="inline-flex items-center gap-2">
+                <label className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 py-1">
                   <input
                     type="checkbox"
                     name="is_active"
@@ -622,7 +725,7 @@ const UserManagement = () => {
                 name="approval_status"
                 value={formData.approval_status}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={formFieldClassName}
               >
                 <option value="pending">En attente</option>
                 <option value="approved">Validé</option>
@@ -634,7 +737,7 @@ const UserManagement = () => {
                     name="department_id"
                     value={formData.department_id}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={formFieldClassName}
                   >
                     <option value="">Sélectionner un département</option>
                     {departments.map((department) => (
@@ -647,14 +750,14 @@ const UserManagement = () => {
                 </div>
               )}
               {/* Champs mot de passe (optionnels en modification) */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Mot de passe"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={formFieldClassName}
                 />
                 {formErrors.password && (
                   <p className="text-xs text-red-600">{Array.isArray(formErrors.password) ? formErrors.password[0] : formErrors.password}</p>
@@ -665,24 +768,24 @@ const UserManagement = () => {
                   value={formData.password_confirmation}
                   onChange={handleChange}
                   placeholder="Confirmer"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={formFieldClassName}
                 />
                 {formErrors.password_confirmation && (
                   <p className="text-xs text-red-600">{Array.isArray(formErrors.password_confirmation) ? formErrors.password_confirmation[0] : formErrors.password_confirmation}</p>
                 )}
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                  className="w-full sm:flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  className="w-full sm:flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
                 >
                   {loading ? (editingUser ? 'Mise à jour...' : 'Création...') : (editingUser ? 'Mettre à jour' : 'Créer')}
                 </button>

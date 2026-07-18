@@ -10,21 +10,25 @@ import { getRedirectPath } from '../../utils/roleRedirect';
 
 function parseHashOrSearch() {
   const result = {};
-  // Essayer le hash first (#token=...&user=...)
   const raw = window.location.hash || window.location.search;
   if (!raw) return result;
   const str = raw.replace(/^#|^\?/, '');
   const params = new URLSearchParams(str);
   const token = params.get('token');
   const userRaw = params.get('user');
+  const error = params.get('error');
+  const message = params.get('message');
+
   if (token) result.token = token;
   if (userRaw) {
     try {
       result.user = JSON.parse(decodeURIComponent(userRaw));
-    } catch (e) {
+    } catch {
       try { result.user = JSON.parse(userRaw); } catch { result.user = null; }
     }
   }
+  if (error) result.error = error;
+  if (message) result.message = message;
   return result;
 }
 
@@ -34,10 +38,23 @@ export default function GoogleCallback() {
 
   useEffect(() => {
     const data = parseHashOrSearch();
+
+    if (data.error) {
+      try {
+        window.opener?.postMessage({ type: 'oauth_google_error', message: data.message || 'Connexion Google impossible' }, '*');
+      } catch {
+        // ignore
+      }
+      setTimeout(() => {
+        window.close();
+      }, 600);
+      return;
+    }
+
     if (window.opener && (data.token || data.user)) {
       try {
         window.opener.postMessage({ type: 'oauth_google_success', token: data.token, user: data.user }, '*');
-      } catch (err) {
+      } catch {
         // ignore
       }
       // Fermer la fenêtre après un petit délai

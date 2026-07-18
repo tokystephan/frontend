@@ -15,7 +15,6 @@ import {
   Cell,
   ComposedChart,
   Line,
-  Legend,
 } from 'recharts'
 import axios from '../../api/axiosConfig'
 
@@ -414,33 +413,43 @@ const DirectionDashboard = () => {
               📈 Évolution des recrutements
             </h3>
             {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={250}>
-                <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--app-border)" />
-                  <XAxis dataKey="month_name" stroke="var(--app-text-soft)" fontSize={12} />
-                  <YAxis yAxisId="left" stroke="var(--app-text-soft)" fontSize={12} />
-                  <YAxis yAxisId="right" orientation="right" stroke="var(--app-text-soft)" fontSize={12} domain={[0, 'auto']} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--app-surface)',
-                      border: '1px solid var(--app-border)',
-                      borderRadius: '8px',
-                      color: 'var(--app-text)',
-                    }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="applications" name="Candidatures" fill="var(--app-text)" radius={[4, 4, 0, 0]} />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="recruitments"
-                    name="Recrutements"
-                    stroke="var(--app-success)"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                  />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <>
+                <div className="mb-3 flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="h-3 w-4 rounded-sm bg-[var(--app-text)]" />
+                    <span className="text-xs text-[var(--app-text-soft)]">Recrutements</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-0.5 w-4 rounded-sm bg-[#22C55E]" />
+                    <span className="text-xs text-[var(--app-text-soft)]">Candidatures</span>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={250}>
+                  <ComposedChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--app-border)" />
+                    <XAxis dataKey="month_name" stroke="var(--app-text-soft)" fontSize={12} />
+                    <YAxis yAxisId="left" stroke="var(--app-text-soft)" fontSize={12} />
+                    <YAxis yAxisId="right" orientation="right" stroke="var(--app-text-soft)" fontSize={12} domain={[0, 'auto']} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--app-surface)',
+                        border: '1px solid var(--app-border)',
+                        borderRadius: '8px',
+                        color: 'var(--app-text)',
+                      }}
+                    />
+                    <Bar yAxisId="left" dataKey="recruitments" fill="var(--app-text)" radius={[4, 4, 0, 0]} />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="applications"
+                      stroke="#22C55E"
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </>
             ) : (
               <p className="text-center text-[var(--app-text-soft)] py-8">Aucune donnée disponible</p>
             )}
@@ -478,6 +487,14 @@ const DirectionDashboard = () => {
                     }}
                   />
                 </PieChart>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {stats.applicationsByDepartment.map((entry, index) => (
+                    <div key={`legend-${index}`} className="flex items-center gap-2 text-xs text-[var(--app-text-soft)]">
+                      <span className="inline-block h-3 w-3 rounded-sm" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                      <span>{entry.name}</span>
+                    </div>
+                  ))}
+                </div>
               </ResponsiveContainer>
             ) : (
               <p className="text-center text-[var(--app-text-soft)] py-8">Aucune donnée disponible</p>

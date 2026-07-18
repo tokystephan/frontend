@@ -66,7 +66,7 @@ export const axiosFileInstance = axios.create({
 // ============================================================
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token') || sessionStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
             if (import.meta.env.DEV) {
@@ -86,7 +86,7 @@ axiosInstance.interceptors.request.use(
 // ============================================================
 axiosFileInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token') || sessionStorage.getItem('token');
+        const token = sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
             if (import.meta.env.DEV) {
@@ -123,9 +123,6 @@ axiosInstance.interceptors.response.use(
         // ✅ Gérer les erreurs 401 (non authentifié)
         if (error.response?.status === 401) {
             console.log('🔴 401 Non autorisé - Redirection vers login');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {
@@ -141,6 +138,11 @@ axiosInstance.interceptors.response.use(
         // ✅ Gérer les erreurs 422 (validation)
         if (error.response?.status === 422) {
             console.log('🔴 422 Erreur de validation:', error.response?.data?.errors);
+        }
+
+        // ✅ Gérer les erreurs 429 (trop de requêtes)
+        if (error.response?.status === 429) {
+            console.warn('🔴 429 Trop de requêtes - attendez avant de réessayer');
         }
 
         // ✅ Gérer les erreurs 500 (serveur)
@@ -175,9 +177,6 @@ axiosFileInstance.interceptors.response.use(
 
         if (error.response?.status === 401) {
             console.log('🔴 401 Non autorisé');
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
             if (!window.location.pathname.includes('/login')) {

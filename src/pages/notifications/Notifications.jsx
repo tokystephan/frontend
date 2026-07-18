@@ -201,12 +201,12 @@ const NotificationsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                 <Bell className="w-4 h-4" />
@@ -217,11 +217,11 @@ const NotificationsPage = () => {
                 Consultez toutes vos notifications et leur historique complet.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-start sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowFilters(!showFilters)}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 <Filter className="w-4 h-4" />
                 Filtrer
@@ -230,7 +230,7 @@ const NotificationsPage = () => {
                 type="button"
                 onClick={handleMarkAllAsRead}
                 disabled={unreadCount === 0 || loading}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" /> 
                 Tout marquer lu
@@ -239,14 +239,14 @@ const NotificationsPage = () => {
                 type="button"
                 onClick={handleRefresh}
                 disabled={loading}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 <RefreshCcw className="w-4 h-4" /> 
                 Rafraîchir
               </button>
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
               >
                 <ArrowRight className="w-4 h-4" /> 
                 Retour dashboard
@@ -283,19 +283,19 @@ const NotificationsPage = () => {
         )}
 
         {/* ==================== RÉSUMÉ ==================== */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-1 flex-wrap items-center gap-4">
+            <div className="min-w-[120px]">
               <span className="text-sm text-gray-500">Total</span>
               <p className="text-xl font-bold text-gray-900">{notifications.length}</p>
             </div>
             <div className="w-px h-8 bg-gray-200" />
-            <div>
+            <div className="min-w-[120px]">
               <span className="text-sm text-gray-500">Non lues</span>
               <p className="text-xl font-bold text-blue-600">{unreadCount}</p>
             </div>
             <div className="w-px h-8 bg-gray-200" />
-            <div>
+            <div className="min-w-[120px]">
               <span className="text-sm text-gray-500">Lues</span>
               <p className="text-xl font-bold text-gray-600">{notifications.length - unreadCount}</p>
             </div>
@@ -344,7 +344,7 @@ const NotificationsPage = () => {
                         !notification.is_read ? 'bg-blue-50/30' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                         {/* Icône */}
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                           !notification.is_read ? 'bg-blue-100' : 'bg-gray-100'
@@ -378,11 +378,11 @@ const NotificationsPage = () => {
                         </div>
                         
                         {/* Actions */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                        <div className="flex items-center gap-2 justify-end sm:justify-start">
                           {!notification.is_read && (
                             <button
                               onClick={() => handleMarkAsRead(notification.id)}
-                              className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50"
+                              className="p-2 bg-white border border-gray-200 text-gray-600 hover:text-blue-600 rounded-lg shadow-sm hover:bg-blue-50 transition"
                               title="Marquer comme lu"
                             >
                               <Check className="w-4 h-4" />
@@ -390,7 +390,7 @@ const NotificationsPage = () => {
                           )}
                           <button
                             onClick={() => handleDelete(notification.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50"
+                            className="p-2 bg-white border border-gray-200 text-gray-600 hover:text-red-600 rounded-lg shadow-sm hover:bg-red-50 transition"
                             title="Supprimer"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -400,7 +400,7 @@ const NotificationsPage = () => {
                       
                       {/* Lien d'action */}
                       {notification.link && (
-                        <div className="mt-2 ml-14">
+                        <div className="mt-2 sm:ml-14 ml-0">
                           <Link
                             to={notification.link}
                             className="text-xs text-blue-600 hover:underline flex items-center gap-1"

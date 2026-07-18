@@ -209,7 +209,7 @@ const ApplicationDetail = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-5">
+      <div className="max-w-screen-2xl mx-auto space-y-5">
         
         {/* ========== BOUTONS NAVIGATION ========== */}
         <div className="flex justify-between items-center">

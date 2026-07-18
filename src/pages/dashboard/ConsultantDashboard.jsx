@@ -367,7 +367,7 @@ const ConsultantDashboard = () => {
     );
   }
 
-  const openPosts = myPosts.filter(p => p.status === 'ouvert');
+  const openPosts = myPosts.filter(p => p.status === 'ouvert'); 
 
   return (
     <AppLayout>

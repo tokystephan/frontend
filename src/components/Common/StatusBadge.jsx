@@ -1,15 +1,15 @@
 import { APPLICATION_STATUS_LABELS, POST_STATUS_LABELS } from '../../utils/constants'
 
 const palette = {
-  recue: 'bg-[#0369a1]/20 text-[#38bdf8]',
-  en_cours: 'bg-[#b45309]/20 text-[#fbbf24]',
-  entretien_rh: 'bg-[#1e40af]/20 text-[#60a5fa]',
-  entretien_technique: 'bg-[#1e40af]/20 text-[#60a5fa]',
-  acceptee: 'bg-[#15803d]/20 text-[#86efac]',
-  refusee: 'bg-[#be123c]/20 text-[#fb7185]',
-  ouvert: 'bg-[#15803d]/20 text-[#86efac]',
-  ferme: 'bg-[#475569]/20 text-[#cbd5e1]',
-  archive: 'bg-[#64748b]/20 text-[#94a3b8]',
+  recue: 'bg-blue-100 text-blue-800 font-semibold border border-blue-300',
+  en_cours: 'bg-amber-100 text-amber-900 font-semibold border border-amber-300',
+  entretien_rh: 'bg-cyan-100 text-cyan-900 font-semibold border border-cyan-300',
+  entretien_technique: 'bg-indigo-100 text-indigo-900 font-semibold border border-indigo-300',
+  acceptee: 'bg-emerald-100 text-emerald-900 font-semibold border border-emerald-300',
+  refusee: 'bg-red-100 text-red-900 font-semibold border border-red-300',
+  ouvert: 'bg-green-100 text-green-900 font-semibold border border-green-300',
+  ferme: 'bg-slate-500 text-white font-semibold border border-slate-600',
+  archive: 'bg-gray-400 text-white font-semibold border border-gray-500',
 }
 
 const StatusBadge = ({ value }) => {

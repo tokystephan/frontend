@@ -1,21 +1,10 @@
 import { useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import { hasPermission } from '../utils/permissions'
-
-const normalizeRole = (roleValue) => {
-  if (typeof roleValue === 'string') {
-    const normalized = roleValue.toLowerCase()
-    return normalized
-  }
-  if (roleValue && typeof roleValue === 'object' && typeof roleValue.name === 'string') {
-    const normalized = roleValue.name.toLowerCase()
-    return normalized
-  }
-  return undefined
-}
+import { getUserRole } from '../utils/roleRedirect'
 
 const usePermissions = () => {
-  const roleName = useSelector((state) => normalizeRole(state.auth.user?.role || state.auth.user?.roleName))
+  const roleName = useSelector((state) => getUserRole(state.auth.user) || state.auth.role)
 
   const permissions = useMemo(
     () => ({

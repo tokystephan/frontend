@@ -143,13 +143,13 @@ function CustomInputField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-xs font-medium text-[#4A7FAF] uppercase tracking-widest">
-        {label} {required && <span className="text-[#ef4444]">*</span>}
+      <label htmlFor={name} className="text-xs font-medium uppercase tracking-[0.25em] text-blue-200">
+        {label} {required && <span className="text-red-400">*</span>}
       </label>
 
       <div className="relative">
         {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A7FAF] pointer-events-none">
+          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-300">
             {icon}
           </div>
         )}
@@ -164,16 +164,14 @@ function CustomInputField({
           onBlur={() => setFocused(false)}
           onChange={onChange}
           className={`
-            w-full py-3 pr-4 text-sm text-[#333333] placeholder-[#666666]
-            bg-white rounded-xl outline-none
-            transition-all duration-200
+            w-full rounded-xl border bg-white/10 py-3 pr-4 text-sm text-white placeholder-slate-300 outline-none backdrop-blur-sm transition-all duration-200
             ${icon ? "pl-10" : "pl-4"}
             ${isPassword ? "pr-12" : "pr-4"}
             ${error
-              ? "border border-[#ef4444]/60 focus:border-[#ef4444]"
+              ? "border-red-400/70 focus:border-red-400"
               : focused
-                ? "border border-[#2A5C8E] ring-2 ring-[#2A5C8E]/20"
-                : "border border-[#E0E0E0] hover:border-[#4A7FAF]"
+                ? "border-blue-400/70 ring-2 ring-blue-400/20"
+                : "border-white/20 hover:border-white/40"
             }
           `}
         />
@@ -182,7 +180,7 @@ function CustomInputField({
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666666] hover:text-[#2A5C8E] transition-colors p-1"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-300 transition-colors hover:text-white"
           >
             {showPassword ? (
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -203,7 +201,7 @@ function CustomInputField({
 
       {error && (
         <p className="text-xs text-[#ef4444] flex items-center gap-1.5 animate-fadeIn">
-          <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-3 h-3 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd"
               d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
               clipRule="evenodd" />
@@ -231,7 +229,7 @@ const initialForm = {
 
 const Register = () => {
   const navigate = useNavigate()
-  const { register, loading, error, successMessage, clearError, clearMessage } = useAuth()
+  const { register, loading, error, successMessage, clearError, clearMessage, validationErrors: serverValidationErrors } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [validationErrors, setValidationErrors] = useState({})
   const lastRegisterSuccessRef = useRef(false);
@@ -246,6 +244,20 @@ const Register = () => {
       clearError()
     }
   }, [error, clearError])
+
+  // Erreurs de validation côté serveur (redux)
+  useEffect(() => {
+    if (serverValidationErrors && typeof serverValidationErrors === 'object' && Object.keys(serverValidationErrors).length) {
+      const normalized = {}
+      Object.entries(serverValidationErrors).forEach(([k, v]) => {
+        if (Array.isArray(v)) normalized[k] = v[0] || ''
+        else if (v && typeof v === 'object') normalized[k] = String(Object.values(v).flat()[0] || '')
+        else normalized[k] = String(v || '')
+      })
+      const first = Object.values(normalized).find(Boolean)
+      if (first) toast.error(first)
+    }
+  }, [serverValidationErrors])
 
   // Redirection après inscription
   useEffect(() => {
@@ -273,28 +285,39 @@ const Register = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    const parsed = registerSchema.safeParse({
+    const payload = {
       ...form,
-      role_name: form.role_name
-    })
-    
+      username: form.username.trim(),
+      first_name: form.first_name.trim(),
+      last_name: form.last_name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      password_confirmation: form.password_confirmation,
+      role_name: form.role_name.trim().toLowerCase(),
+    }
+
+    const parsed = registerSchema.safeParse(payload)
+
     if (!parsed.success) {
       const errors = {}
-      if (parsed.error && parsed.error.errors) {
-        parsed.error.errors.forEach(err => {
-          const path = err.path && err.path[0] ? err.path[0] : 'general'
-          errors[path] = err.message
-        })
-      }
+      const issues = parsed.error?.issues || parsed.error?.errors || []
+
+      issues.forEach((issue) => {
+        const path = issue.path && issue.path[0] ? String(issue.path[0]) : 'general'
+        if (!errors[path]) {
+          errors[path] = issue.message
+        }
+      })
+
       setValidationErrors(errors)
-      
-      const firstError = (parsed.error && parsed.error.errors && parsed.error.errors[0]?.message) || 'Formulaire invalide'
+
+      const firstError = issues[0]?.message || 'Formulaire invalide'
       toast.error(firstError)
       return
     }
 
     setValidationErrors({})
-    lastRegisterSuccessRef.current = false;
+    lastRegisterSuccessRef.current = false
     await register(parsed.data)
   }
 
@@ -333,7 +356,24 @@ const Register = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] relative flex flex-col font-['Inter',system-ui,sans-serif]">
+    <div className="relative min-h-screen overflow-hidden text-white font-['Inter',system-ui,sans-serif]">
+
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster="/back.jpeg"
+      >
+        <source src="/bg akanjo.mp4" type="video/mp4" />
+        Votre navigateur ne prend pas en charge la lecture vidéo.
+      </video>
+
+      <div className="absolute inset-0 bg-black/30" />
+
+      <ParticlesCanvas />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -357,49 +397,43 @@ const Register = () => {
         .animate-fadeIn   { animation: fadeIn   0.4s ease both; }
       `}</style>
 
-      <ParticlesCanvas />
-
-      {/* ============================================================
-          HEADER
-      ============================================================ */}
-      <header className="relative z-10 flex items-center justify-between px-6 md:px-10 py-4 border-b border-[#E0E0E0] bg-white/95 backdrop-blur-md shadow-sm">
-        <Link to="/" className="flex items-center gap-3 group">
-          <LogoCube3D size={36} />
-          <div className="flex flex-col leading-tight">
-            <span className="text-[#2A5C8E] font-semibold text-base tracking-tight group-hover:text-[#4A7FAF] transition-colors">
-              Akanjo
-            </span>
-            <span className="text-[#4A7FAF] text-[9px] uppercase tracking-widest">
-              Gestion des candidatures
-            </span>
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-2 text-sm text-[#666666]">
-          Déjà inscrit ?{" "}
-          <Link
-            to="/login"
-            className="text-[#2A5C8E] hover:text-[#4A7FAF] font-medium transition-colors"
-          >
-            Se connecter →
+      <div className="relative z-10 flex min-h-screen flex-col px-4 py-4 sm:px-6 lg:px-8">
+        <header className="flex items-center justify-between rounded-2xl bg-white px-6 py-4 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-lg">
+          <Link to="/" className="flex items-center gap-3">
+            <img src="/akanjo.jpg" alt="Akanjo" className="h-10 w-auto object-contain" />
           </Link>
-        </div>
-      </header>
 
-      {/* ============================================================
-          MAIN CONTENT
-      ============================================================ */}
-      <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-xl" style={{ perspective: "1000px" }}>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+            >
+              Se connecter
+            </Link>
+            <Link
+              to="/register"
+              className="rounded-xl border border-white/30 bg-black/70 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:bg-black/80"
+            >
+              S&apos;inscrire
+            </Link>
+          </div>
+        </header>
 
-          <div className="text-center mb-8 animate-fadeInUp">
-            <h1 className="text-2xl font-bold text-[#333333] mb-1">Créer un compte</h1>
-            <p className="text-[#666666] text-sm">Rejoignez la plateforme de recrutement</p>
+        <main className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-2xl rounded-4xl bg-white/10 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:p-10 lg:p-12">
+
+          <div className="text-center mb-8 animate-fadeInUp text-white">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
+              Akanjo RH
+            </p>
+            <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+              Créez votre compte
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm text-slate-200 sm:text-base">
+              Rejoignez l'espace de recrutement moderne et collaborez facilement.
+            </p>
           </div>
 
-          {/* ============================================================
-              CARTE 3D
-          ============================================================ */}
           <div
             ref={cardRef}
             onMouseMove={handleCardMouseMove}
@@ -413,15 +447,15 @@ const Register = () => {
               ...cardTilt,
             }}
           >
-            <div className="bg-white border border-[#E0E0E0] rounded-2xl p-8 relative overflow-hidden shadow-lg">
+            <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl">
 
               {/* Barre décorative */}
-              <div className="absolute top-0 left-8 right-8 h-0.5 bg-[#2A5C8E] rounded-b-full" />
+              <div className="absolute left-8 right-8 top-0 h-0.5 rounded-b-full bg-blue-400/80" />
 
               {/* Message d'erreur serveur */}
               {error && (
                 <div className="mb-5 flex items-start gap-3 p-3.5 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/25 animate-fadeIn">
-                  <svg className="w-4 h-4 text-[#ef4444] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-4 h-4 text-[#ef4444] mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd"
                       d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                       clipRule="evenodd" />
@@ -500,14 +534,14 @@ const Register = () => {
 
                 {/* Rôle */}
                 <div>
-                  <label className="block text-xs font-medium text-[#4A7FAF] uppercase tracking-widest mb-1.5">
-                    Rôle <span className="text-[#ef4444]">*</span>
+                  <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.25em] text-blue-200">
+                    Rôle <span className="text-red-400">*</span>
                   </label>
                   <select
                     name="role_name"
                     value={form.role_name}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 text-sm text-[#333333] bg-white border border-[#E0E0E0] rounded-xl outline-none transition-all duration-200 focus:border-[#2A5C8E] focus:ring-2 focus:ring-[#2A5C8E]/20 hover:border-[#4A7FAF]"
+                    className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none backdrop-blur-sm transition-all duration-200 hover:border-white/40 focus:border-blue-400/70 focus:ring-2 focus:ring-blue-400/20"
                     required
                   >
                     <option value="assistant">Assistant RH</option>
@@ -558,12 +592,9 @@ const Register = () => {
                   type="submit"
                   disabled={loading}
                   className="
-                    w-full py-3 mt-4 bg-[#2A5C8E] hover:bg-[#4A7FAF]
-                    text-white font-semibold text-sm rounded-xl
-                    transition-all duration-200
-                    hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#2A5C8E]/30
-                    disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0
-                    flex items-center justify-center gap-2
+                    mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200
+                    hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30
+                    disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0
                   "
                 >
                   {loading && (
@@ -578,41 +609,38 @@ const Register = () => {
               </form>
 
               {/* Lien vers la connexion */}
-              <p className="mt-6 text-center text-sm text-[#666666]">
+              <p className="mt-6 text-center text-sm text-slate-300">
                 Déjà inscrit ?{' '}
-                <Link to="/login" className="font-semibold text-[#2A5C8E] hover:text-[#4A7FAF] transition-colors">
+                <Link to="/login" className="font-semibold text-white transition-colors hover:text-blue-200">
                   Se connecter
                 </Link>
               </p>
             </div>
           </div>
 
-          <p className="text-center text-xs text-[#999999] mt-5">
-            <Link to="/" className="hover:text-[#2A5C8E] transition-colors">
+          <p className="text-center text-xs text-slate-300 mt-5">
+            <Link to="/" className="hover:text-white transition-colors">
               ← Retour à l'accueil
             </Link>
           </p>
         </div>
       </main>
 
-      {/* ============================================================
-          FOOTER
-      ============================================================ */}
-      <footer className="relative z-10 border-t border-[#E0E0E0] bg-white px-6 py-3 mt-auto">
+      <footer className="relative z-10 border-t border-white/10 px-6 py-3 mt-auto text-slate-300">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
 
           <div className="flex items-center gap-2.5">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs text-[#666666]">
-              <span className="text-[#2A5C8E]">Inscription sécurisée</span>
+            <span className="text-xs text-slate-300">
+              <span className="text-blue-200">Inscription sécurisée</span>
               {" "}· Données chiffrées · Conforme RGPD
             </span>
           </div>
 
           <div className="flex gap-4">
-            <a href="#" className="text-xs text-[#999999] hover:text-[#2A5C8E] transition-colors">Aide</a>
-            <a href="#" className="text-xs text-[#999999] hover:text-[#2A5C8E] transition-colors">Confidentialité</a>
-            <a href="#" className="text-xs text-[#999999] hover:text-[#2A5C8E] transition-colors">CGU</a>
+            <a href="#" className="text-xs text-slate-400 transition-colors hover:text-white">Aide</a>
+            <a href="#" className="text-xs text-slate-400 transition-colors hover:text-white">Confidentialité</a>
+            <a href="#" className="text-xs text-slate-400 transition-colors hover:text-white">CGU</a>
           </div>
         </div>
 
@@ -621,6 +649,7 @@ const Register = () => {
         </p>
       </footer>
     </div>
+  </div>
   )
 }
 

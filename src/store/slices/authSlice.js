@@ -21,7 +21,7 @@ if (storedUser) {
   try {
     initialUser = JSON.parse(storedUser)
   } catch {
-    localStorage.removeItem('user')
+    sessionStorage.removeItem('user')
   }
 }
 
@@ -261,15 +261,19 @@ const authSlice = createSlice({
       state.token = action.payload.token
       state.role = normalizedUser.role
       state.isAuthenticated = true
-      // Stocker dans la session de l'onglet courant
+      // Stocker dans sessionStorage uniquement
+      if (action.payload.token) {
         sessionStorage.setItem('token', action.payload.token)
+      }
+      if (normalizedUser) {
         sessionStorage.setItem('user', JSON.stringify(normalizedUser))
+      }
     },
     updateUserProfile: (state, action) => {
       if (state.user && action.payload) {
         const updatedUser = normalizeUser(action.payload)
         state.user = updatedUser
-        localStorage.setItem('user', JSON.stringify(updatedUser))
+        sessionStorage.setItem('user', JSON.stringify(updatedUser))
       }
     }
   },
@@ -288,9 +292,13 @@ const authSlice = createSlice({
         state.role = action.payload.role
         state.isAuthenticated = true
         state.error = null
-        // Stocker dans sessionStorage (par onglet, pas partagé entre onglets)
+        // Stocker dans sessionStorage uniquement
+        if (action.payload.token) {
           sessionStorage.setItem('token', action.payload.token)
+        }
+        if (action.payload.user) {
           sessionStorage.setItem('user', JSON.stringify(action.payload.user))
+        }
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false
@@ -355,6 +363,8 @@ const authSlice = createSlice({
         state.token = null
         state.role = null
         state.isAuthenticated = false
+        sessionStorage.removeItem('token')
+        sessionStorage.removeItem('user')
       })
       // FORGOT PASSWORD
       .addCase(forgotPasswordUser.fulfilled, (state, action) => {

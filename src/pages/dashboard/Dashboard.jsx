@@ -9,43 +9,11 @@ import AssistantDashboard from './AssistantDashboard'
 import ConsultantDashboard from './ConsultantDashboard'
 import DirectionDashboard from './DirectionDashboard'
 import { useAppSelector } from '../../store/hooks'
+import { getUserRole } from '../../utils/roleRedirect'
 
 const Dashboard = () => {
-  // ✅ CORRECTION : Récupérer le rôle correctement (supporte chaîne ET objet)
   const user = useAppSelector((state) => state.auth.user)
-  const roleAliases = {
-  }
-  const normalizeRole = (value) => {
-    const normalized = String(value || '').toLowerCase()
-    return roleAliases[normalized] || normalized
-  }
-  
-  // ✅ Fonction pour extraire le rôle en toute sécurité
-  const getUserRole = () => {
-    if (!user) return null
-
-    if (user.role_id === 1 || user.role_id === '1') return ROLES.ADMIN
-    if (user.role_id === 2 || user.role_id === '2') return ROLES.ASSISTANT
-    if (user.role_id === 3 || user.role_id === '3' || user.role_id === 4 || user.role_id === '4') return ROLES.MANAGER
-    if (user.role_id === 5 || user.role_id === '5') return ROLES.DIRECTION
-
-    if (typeof user.role === 'string') {
-      return normalizeRole(user.role)
-    }
-
-    if (user.role && typeof user.role === 'object') {
-      if (user.role.name) return normalizeRole(user.role.name)
-      if (user.role.display_name) return normalizeRole(user.role.display_name)
-    }
-
-    if (user.roleName && typeof user.roleName === 'string') {
-      return normalizeRole(user.roleName)
-    }
-
-    return null
-  }
-  
-  const role = getUserRole()
+  const role = getUserRole(user)
   
   console.log('🎯 Dashboard - Rôle détecté:', role)
   console.log('🎯 Dashboard - User complet:', user)

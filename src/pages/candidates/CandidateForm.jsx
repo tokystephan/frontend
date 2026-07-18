@@ -83,6 +83,13 @@ const CandidateForm = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
+    if (name === 'first_name' || name === 'last_name') {
+      const sanitizedValue = value.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '');
+      setForm((previous) => ({ ...previous, [name]: sanitizedValue }));
+      return;
+    }
+
     setForm((previous) => ({ ...previous, [name]: value }));
   };
 
@@ -139,7 +146,7 @@ const CandidateForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   Briefcase,
@@ -39,11 +39,22 @@ const DEFAULT_STATS = {
 };
 
 const normalizeListPayload = (payload) => {
-  const candidates = [payload?.data?.data, payload?.data, payload];
+  const candidates = [
+    payload?.data?.data,
+    payload?.data?.applications,
+    payload?.data?.events,
+    payload?.data?.activities,
+    payload?.applications,
+    payload?.events,
+    payload?.activities,
+    payload?.data,
+    payload,
+  ];
   return candidates.find((item) => Array.isArray(item)) || [];
 };
 
 const AssistantDashboard = ({ stats: initialStats }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState(null);
@@ -57,6 +68,7 @@ const AssistantDashboard = ({ stats: initialStats }) => {
   const [todayAgenda, setTodayAgenda] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
   const [statusChartData, setStatusChartData] = useState([]);
+  const [processingApplicationId, setProcessingApplicationId] = useState(null);
 
   // Mocks supprimés : dashboard en mode vide
   const applyMockData = useCallback(() => {
@@ -121,13 +133,19 @@ const AssistantDashboard = ({ stats: initialStats }) => {
   };
 
   const handleProcessApplication = async (id) => {
+    if (!id || processingApplicationId) return;
+
+    setProcessingApplicationId(id);
+
     try {
       await axios.post(`/assistant/applications/${id}/process`);
-    } catch {
-      // Endpoint optionnel en mode démo.
-    } finally {
       setPendingApplications((previous) => previous.filter((item) => item.id !== id));
       toast.success('Candidature prise en compte');
+    } catch (error) {
+      console.error('Erreur traitement candidature:', error);
+      toast.error(error?.response?.data?.message || 'Impossible de traiter cette candidature');
+    } finally {
+      setProcessingApplicationId(null);
     }
   };
 
@@ -153,6 +171,45 @@ const AssistantDashboard = ({ stats: initialStats }) => {
       default:
         return 'text-[var(--app-text-soft)] bg-[var(--app-bg-soft)]';
     }
+  };
+
+  const normalizePriority = (priority) => {
+    const value = String(priority || '').toLowerCase();
+    if (['high', 'haute', 'urgent', 'critical'].includes(value)) return 'high';
+    if (['medium', 'moyenne', 'moyen', 'normal'].includes(value)) return 'medium';
+    if (['low', 'basse', 'faible'].includes(value)) return 'low';
+    return 'medium';
+  };
+
+  const getSourceLabel = (value) => {
+    if (!value) return '-';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return `Source ${value}`;
+    if (typeof value === 'object') {
+      if (typeof value.name === 'string' && value.name.trim()) return value.name;
+      if (typeof value.label === 'string' && value.label.trim()) return value.label;
+      if (typeof value.title === 'string' && value.title.trim()) return value.title;
+      if (typeof value.source === 'string' && value.source.trim()) return value.source;
+      if (typeof value.source_name === 'string' && value.source_name.trim()) return value.source_name;
+      if (typeof value.value === 'string' && value.value.trim()) return value.value;
+      return '-';
+    }
+    return String(value);
+  };
+
+  const getAgendaLabel = (value) => {
+    if (!value) return 'Sans détail';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') {
+      return value.title || value.name || value.label || value.candidate || value.position || 'Sans détail';
+    }
+    return String(value);
+  };
+
+  const getActivityText = (activity) => {
+    const action = activity?.action || 'Activité';
+    const candidate = activity?.candidate || activity?.name || activity?.title || 'élément';
+    return `${action} - ${candidate}`;
   };
 
   const filteredApplications = useMemo(() => {
@@ -313,31 +370,37 @@ const AssistantDashboard = ({ stats: initialStats }) => {
                         </span>
                       </td>
                       <td className="px-6 py-3 text-[var(--app-text-soft)]">{app.date}</td>
-                      <td className="px-6 py-3 text-sm text-[var(--app-text-soft)]">{app.source}</td>
+                      <td className="px-6 py-3 text-sm text-[var(--app-text-soft)]">{getSourceLabel(app.source)}</td>
                       <td className="px-6 py-3">
-                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${getPriorityColor(app.priority)}`}>
-                          {app.priority === 'high' ? 'Haute' : app.priority === 'medium' ? 'Moyenne' : 'Basse'}
+                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${getPriorityColor(normalizePriority(app.priority))}`}>
+                          {normalizePriority(app.priority) === 'high' ? 'Haute' : normalizePriority(app.priority) === 'medium' ? 'Moyenne' : 'Basse'}
                         </span>
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex gap-2">
                           <button
                             type="button"
+                            onClick={() => navigate(`/applications/${app.id}`)}
                             className="p-1 text-[var(--app-text-soft)] hover:text-[var(--app-text)]"
-                            title="Voir CV"
+                            title="Voir candidature"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleProcessApplication(app.id)}
-                            className="p-1 text-[var(--app-text-soft)] hover:text-[var(--app-success)]"
+                            disabled={processingApplicationId === app.id}
+                            className={`p-1 ${processingApplicationId === app.id ? 'cursor-not-allowed text-[var(--app-success)]/60' : 'text-[var(--app-text-soft)] hover:text-[var(--app-success)]'}`}
                             title="Traiter"
                           >
                             <CheckCircle className="h-4 w-4" />
                           </button>
                           <Link
-                            to="/interviews/create"
+                            to={{
+                              pathname: '/interviews/create',
+                              search: `?application_id=${app.id}`,
+                            }}
+                            state={{ applicationId: app.id }}
                             className="p-1 text-[var(--app-text-soft)] hover:text-[var(--app-text)]"
                             title="Planifier entretien"
                           >
@@ -390,9 +453,9 @@ const AssistantDashboard = ({ stats: initialStats }) => {
                           <span className="text-sm text-[var(--app-text-soft)]">{event.time}</span>
                         </div>
                         <p className="mt-1 text-sm text-[var(--app-text-soft)]">
-                          {event.candidate} - {event.position}
+                          {getAgendaLabel(event.candidate)} - {getAgendaLabel(event.position)}
                         </p>
-                        <p className="mt-1 text-xs text-[var(--app-text-soft)]">{event.location}</p>
+                        <p className="mt-1 text-xs text-[var(--app-text-soft)]">{getAgendaLabel(event.location)}</p>
                       </div>
                     </div>
                   </div>
@@ -440,10 +503,10 @@ const AssistantDashboard = ({ stats: initialStats }) => {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-[var(--app-text)]">
-                          <span className="font-medium">{activity.action}</span> - {activity.candidate}
+                          <span className="font-medium">{activity.action || 'Activité'}</span> - {getActivityText(activity)}
                         </p>
                         <p className="mt-1 text-xs text-[var(--app-text-soft)]">
-                          par {activity.user} • {activity.time}
+                          par {activity.user || 'Système'} • {activity.time || 'à l’instant'}
                         </p>
                       </div>
                     </div>

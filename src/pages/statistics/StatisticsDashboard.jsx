@@ -70,7 +70,7 @@ const StatisticsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">

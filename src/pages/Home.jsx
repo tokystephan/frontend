@@ -1,214 +1,268 @@
 // src/pages/Home.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-    Users, 
-    Briefcase, 
-    Calendar, 
-    FileText, 
-    BarChart3, 
-    Bell,
-    Shield,
-    ArrowRight,
-    TrendingUp,
-    Clock,
-    CheckCircle
-} from 'lucide-react';
 
 const Home = () => {
-    return (
-        <div>
-            {/* Section Héro */}
-            <section className="py-16 md:py-20">
-                <div className="container mx-auto px-4 text-center">
-                    {/* Badge */}
-                    <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm mb-6">
-                        <Shield className="w-4 h-4" />
-                        <span>Solution interne RH</span>
-                    </div>
-                    
-                    {/* Titre principal */}
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
-                        Gérez vos recrutements
-                        <span className="text-blue-600"> simplement</span>
-                    </h1>
-                    
-                    {/* Sous-titre */}
-                    <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-                        Centralisez vos candidatures, suivez les entretiens et pilotez vos recrutements 
-                        avec une interface simple et efficace.
-                    </p>
-                    
-                    {/* Boutons CTA */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                        <Link 
-                            to="/register" 
-                            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md"
-                        >
-                            Commencer gratuitement
-                            <ArrowRight className="w-4 h-4" />
-                        </Link>
-                        <Link 
-                            to="/login" 
-                            className="border border-gray-300 bg-white text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition flex items-center justify-center gap-2"
-                        >
-                            Se connecter
-                        </Link>
-                    </div>
-                    
-                    {/* Aperçu du tableau de bord */}
-                    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-w-4xl mx-auto">
-                        {/* Barre de titre */}
-                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                            <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                            <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                            <span className="text-xs text-gray-500 ml-2">Tableau de bord RH</span>
-                        </div>
-                        
-                        {/* Contenu de l'aperçu */}
-                        <div className="p-6">
-                            {/* Cartes KPI */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="bg-blue-50 p-4 rounded-xl text-center">
-                                    <p className="text-2xl font-bold text-blue-600">124</p>
-                                    <p className="text-xs text-gray-600 mt-1">Candidatures</p>
-                                </div>
-                                <div className="bg-green-50 p-4 rounded-xl text-center">
-                                    <p className="text-2xl font-bold text-green-600">12</p>
-                                    <p className="text-xs text-gray-600 mt-1">Postes ouverts</p>
-                                </div>
-                                <div className="bg-orange-50 p-4 rounded-xl text-center">
-                                    <p className="text-2xl font-bold text-orange-600">45</p>
-                                    <p className="text-xs text-gray-600 mt-1">Entretiens</p>
-                                </div>
-                                <div className="bg-purple-50 p-4 rounded-xl text-center">
-                                    <p className="text-2xl font-bold text-purple-600">67%</p>
-                                    <p className="text-xs text-gray-600 mt-1">Taux conversion</p>
-                                </div>
-                            </div>
-                            
-                            {/* Légende */}
-                            <div className="border-t border-gray-100 pt-4 text-center">
-                                <p className="text-xs text-gray-400">Aperçu du tableau de bord - données fictives</p>
-                            </div>
-                        </div>
-                    </div>
+  const [activeModal, setActiveModal] = React.useState(null);
+
+  const closeModal = () => setActiveModal(null);
+
+  const renderModal = () => {
+    switch (activeModal) {
+      case 'about':
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-4xl bg-black/90 p-8 border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">À Propos d'Akanjo</h1>
+                <button
+                  onClick={closeModal}
+                  className="text-white hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4 text-slate-300">
+                <p>
+                  Akanjo RH est une plateforme de gestion des ressources humaines conçue pour simplifier vos processus de recrutement et d'évaluation des candidats.
+                </p>
+                <p>
+                  Notre mission est de fournir un outil moderne et intuitif qui permet aux entreprises de gérer efficacement leurs candidatures, entretiens et décisions RH.
+                </p>
+                <p>
+                  Avec Akanjo, vous bénéficiez d'une solution complète pour centraliser vos données, collaborer en équipe et prendre les meilleures décisions de recrutement.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'features':
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-3xl max-h-[80vh] overflow-y-auto rounded-4xl bg-black/90 p-8 border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Nos Fonctionnalités</h1>
+                <button
+                  onClick={closeModal}
+                  className="text-white hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                {[
+                  { title: 'Gestion des Candidatures', desc: 'Centralisez toutes vos candidatures en un seul endroit.' },
+                  { title: 'Planification des Entretiens', desc: 'Programmez et gérez vos entretiens avec un calendrier intelligent.' },
+                  { title: 'Évaluations et Rapports', desc: 'Créez des évaluations détaillées et générez des rapports.' },
+                  { title: 'Collaboration d\'équipe', desc: 'Travaillez en équipe avec un système de commentaires.' },
+                  { title: 'Gestion des Compétences', desc: 'Enregistrez et suivez les compétences des candidats.' },
+                  { title: 'Intégrations Avancées', desc: 'Connectez Akanjo à vos outils existants.' }
+                ].map((feature, idx) => (
+                  <div key={idx} className="rounded-lg bg-white/10 p-4 border border-white/10">
+                    <h3 className="font-semibold text-blue-400 mb-2">{feature.title}</h3>
+                    <p className="text-sm text-slate-300">{feature.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'contact':
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-2xl rounded-4xl bg-black/90 p-8 border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Contactez-nous</h1>
+                <button
+                  onClick={closeModal}
+                  className="text-white hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <form onSubmit={(e) => { e.preventDefault(); alert('Message envoyé !'); closeModal(); }} className="space-y-4">
+                <div>
+                  <input type="text" placeholder="Votre nom" className="w-full rounded-lg bg-white/10 px-4 py-2 border border-white/20 text-white placeholder-slate-400" required />
                 </div>
-            </section>
-            
-            {/* Section fonctionnalités */}
-            <section className="py-16 bg-white">
-                <div className="container mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl font-bold text-gray-900 mb-3">Fonctionnalités principales</h2>
-                        <p className="text-gray-500 max-w-2xl mx-auto">
-                            Tout ce dont vous avez besoin pour gérer vos recrutements efficacement
-                        </p>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Carte 1 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition">
-                                <Users className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">👥 Gestion des candidats</h3>
-                            <p className="text-sm text-gray-500">Centralisez tous les profils, CV et documents des candidats.</p>
-                        </div>
-                        
-                        {/* Carte 2 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition">
-                                <Briefcase className="w-6 h-6 text-green-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">💼 Gestion des postes</h3>
-                            <p className="text-sm text-gray-500">Créez et suivez vos fiches de poste par département.</p>
-                        </div>
-                        
-                        {/* Carte 3 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition">
-                                <FileText className="w-6 h-6 text-orange-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">📄 Suivi des candidatures</h3>
-                            <p className="text-sm text-gray-500">Statuts, historique des changements, commentaires internes.</p>
-                        </div>
-                        
-                        {/* Carte 4 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition">
-                                <Calendar className="w-6 h-6 text-purple-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">📅 Planification entretiens</h3>
-                            <p className="text-sm text-gray-500">Organisez et suivez vos entretiens (RH, technique, final).</p>
-                        </div>
-                        
-                        {/* Carte 5 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-200 transition">
-                                <BarChart3 className="w-6 h-6 text-yellow-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">📊 Statistiques</h3>
-                            <p className="text-sm text-gray-500">Analysez vos performances recrutement avec des graphiques.</p>
-                        </div>
-                        
-                        {/* Carte 6 */}
-                        <div className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition group">
-                            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-red-200 transition">
-                                <Bell className="w-6 h-6 text-red-600" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 mb-2">🔔 Notifications</h3>
-                            <p className="text-sm text-gray-500">Alertes en temps réel pour les changements de statut.</p>
-                        </div>
-                    </div>
+                <div>
+                  <input type="email" placeholder="Votre email" className="w-full rounded-lg bg-white/10 px-4 py-2 border border-white/20 text-white placeholder-slate-400" required />
                 </div>
-            </section>
-            
-            {/* Section chiffres clés */}
-            <section className="py-16 bg-blue-600">
-                <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
-                        <div>
-                            <p className="text-3xl md:text-4xl font-bold">+500</p>
-                            <p className="text-sm text-blue-100 mt-2">Candidatures traitées</p>
-                        </div>
-                        <div>
-                            <p className="text-3xl md:text-4xl font-bold">+50</p>
-                            <p className="text-sm text-blue-100 mt-2">Postes pourvus</p>
-                        </div>
-                        <div>
-                            <p className="text-3xl md:text-4xl font-bold">30j</p>
-                            <p className="text-sm text-blue-100 mt-2">Délai moyen</p>
-                        </div>
-                        <div>
-                            <p className="text-3xl md:text-4xl font-bold">100%</p>
-                            <p className="text-sm text-blue-100 mt-2">Satisfaction équipe</p>
-                        </div>
-                    </div>
+                <div>
+                  <input type="text" placeholder="Sujet" className="w-full rounded-lg bg-white/10 px-4 py-2 border border-white/20 text-white placeholder-slate-400" required />
                 </div>
-            </section>
-            
-            {/* Section CTA finale */}
-            <section className="py-16">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                        Prêt à simplifier vos recrutements ?
-                    </h2>
-                    <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                        Rejoignez les équipes RH qui utilisent Akanjo au quotidien.
-                    </p>
-                    <Link 
-                        to="/register" 
-                        className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition shadow-md"
-                    >
-                        Créer un compte
-                        <ArrowRight className="w-4 h-4" />
-                    </Link>
+                <div>
+                  <textarea placeholder="Votre message..." rows="4" className="w-full rounded-lg bg-white/10 px-4 py-2 border border-white/20 text-white placeholder-slate-400" required />
                 </div>
-            </section>
+                <button type="submit" className="w-full rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700">
+                  Envoyer
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+
+      case 'terms':
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-4xl bg-black/90 p-8 border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Conditions d'Utilisation</h1>
+                <button
+                  onClick={closeModal}
+                  className="text-white hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4 text-slate-300">
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">1. Acceptation des Conditions</h2>
+                  <p>En accédant à Akanjo RH, vous acceptez de respecter ces conditions d'utilisation.</p>
+                </section>
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">2. Utilisation du Service</h2>
+                  <p>Vous acceptez d'utiliser ce service uniquement à des fins légales.</p>
+                </section>
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">3. Propriété Intellectuelle</h2>
+                  <p>Le contenu du site est protégé par les droits d'auteur.</p>
+                </section>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'privacy':
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-2xl max-h-[80vh] overflow-y-auto rounded-4xl bg-black/90 p-8 border border-white/20 backdrop-blur-lg">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Politique de Confidentialité</h1>
+                <button
+                  onClick={closeModal}
+                  className="text-white hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4 text-slate-300">
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">1. Collecte d'Informations</h2>
+                  <p>Nous collectons les informations que vous nous fournissez volontairement.</p>
+                </section>
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">2. Utilisation des Données</h2>
+                  <p>Vos données sont utilisées pour améliorer nos services.</p>
+                </section>
+                <section>
+                  <h2 className="text-lg font-semibold text-blue-400 mb-2">3. Protection des Données</h2>
+                  <p>Nous mettons en œuvre des mesures de sécurité appropriées.</p>
+                </section>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-black text-white">
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster="/back.jpeg"
+      >
+        <source src="/bg akanjo.mp4" type="video/mp4" />
+        Votre navigateur ne prend pas en charge la lecture vidéo.
+      </video>
+
+      <div className="absolute inset-0 bg-black/50" />
+
+      <div className="relative z-10 flex min-h-screen flex-col px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between rounded-2xl bg-white px-6 py-4 backdrop-blur-lg">
+          <div className="flex items-center gap-3">
+            <img
+              src="/akanjo.jpg"
+              alt=""
+              className="h-13 w-auto object-contain cursor-pointer"
+            />
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              to="/login"
+              className="flex min-w-35 items-center justify-center rounded-xl bg-[#0f172a] px-5 py-2.5 text-sm font-bold text-white shadow-[0_8px_24px_rgba(15,23,42,0.35)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#111827]"
+            >
+              Se connecter
+            </Link>
+            <Link
+              to="/register"
+              className="flex min-w-35 items-center justify-center rounded-xl border-2 border-[#0f172a] bg-[#83aab3] px-5 py-2.5 text-black font-bold text-[#0f172a] shadow-[0_8px_24px_rgba(0,0,0,0.12)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#94b8c4]"
+            >
+              S&apos;inscrire
+            </Link>
+          </div>
         </div>
-    );
+
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-2xl rounded-4xl bg-linear-to-br from-white/20 via-white/10 to-transparent p-8 text-center shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:p-10 lg:p-12">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
+              Akanjo RH
+            </p>
+            <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+              Gérez vos recrutements avec simplicité
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-sm text-slate-200 sm:text-base">
+              Découvrez un espace moderne pour piloter vos candidatures, vos entretiens et vos décisions RH.
+            </p>
+          </div>
+        </div>
+
+        <footer className="mt-auto border-t border-white/10 rounded-2xl bg-black/40 px-6 py-6 backdrop-blur-lg">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-8 md:grid-cols-3">
+              <div>
+                <h3 className="mb-4 font-semibold text-white">Akanjo RH</h3>
+                <p className="text-sm text-slate-300">
+                  Une plateforme moderne pour gérer vos recrutements avec simplicité et efficacité.
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-4 font-semibold text-white">Liens</h3>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li><button onClick={() => setActiveModal('about')} className="hover:text-white transition cursor-pointer">À propos</button></li>
+                  <li><button onClick={() => setActiveModal('features')} className="hover:text-white transition cursor-pointer">Fonctionnalités</button></li>
+                  <li><button onClick={() => setActiveModal('contact')} className="hover:text-white transition cursor-pointer">Contact</button></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="mb-4 font-semibold text-white">Légal</h3>
+                <ul className="space-y-2 text-sm text-slate-300">
+                  <li><button onClick={() => setActiveModal('terms')} className="hover:text-white transition cursor-pointer">Conditions d&apos;utilisation</button></li>
+                  <li><button onClick={() => setActiveModal('privacy')} className="hover:text-white transition cursor-pointer">Politique de confidentialité</button></li>
+                </ul>
+              </div>
+            </div>
+            <div className="mt-8 border-t border-white/10 pt-6 text-center text-sm text-slate-400">
+              <p>&copy; 2024 Akanjo RH. Tous droits réservés.</p>
+            </div>
+          </div>
+        </footer>
+
+        {/* Modal */}
+        {renderModal()}
+      </div>
+    </div>
+  );
 };
 
 export default Home;

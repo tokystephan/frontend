@@ -180,10 +180,13 @@ const Header = ({ onMenuClick }) => {
               <Menu className="w-5 h-5" />
             </button>
           )}
-          <Link to="/dashboard" className="flex items-center gap-3 group">
-           <img src="logo de akanjo.jpg" alt="Logo" className="h-15 w-50 transition-transform group-hover:scale-100" />
-          
-           
+          <Link to="/dashboard" className="flex items-center gap-1 group shrink-0">
+            <img 
+              src="/akanjo.jpg" 
+              alt="Akanjo Logo" 
+              className="h-15 object-contain transition-transform duration-200 group-hover:scale-105" 
+              title="Accueil"
+            />
           </Link>
         </div>
 
@@ -207,8 +210,8 @@ const Header = ({ onMenuClick }) => {
 
             {/* Panneau des notifications */}
             {showNotifications && (
-              <div className="absolute right-0 z-50 mt-2 w-[min(24rem,calc(100vw-1rem))] overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-xl backdrop-blur-md">
-                <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-bg-soft)] px-4 py-3">
+              <div className="fixed inset-x-2 top-16 z-[60] flex max-h-[min(78vh,36rem)] w-[min(24rem,calc(100vw-1rem))] flex-col overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] shadow-2xl shadow-black/10 backdrop-blur-md sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[min(24rem,calc(100vw-1rem))] sm:max-h-[min(80vh,36rem)] sm:rounded-xl">
+                <div className="flex items-center justify-between border-b border-[var(--app-border)] bg-[var(--app-bg-soft)] px-3 py-3 sm:px-4">
                   <h3 className="flex items-center gap-2 font-semibold text-[var(--app-text)]">
                     <Bell className="w-4 h-4 text-[var(--app-text-soft)]" />
                     Notifications
@@ -237,7 +240,7 @@ const Header = ({ onMenuClick }) => {
                   </div>
                 </div>
 
-                <div className="max-h-96 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto overscroll-contain">
                   {loading ? (
                     <div className="px-4 py-8 text-center">
                       <div className="inline-block animate-spin">
@@ -254,46 +257,46 @@ const Header = ({ onMenuClick }) => {
                     notifications.map((notif) => (
                       <div
                         key={notif.id}
-                        className={`group border-b border-[var(--app-border)]/60 px-4 py-3 transition ${
+                        className={`group border-b border-[var(--app-border)]/60 px-3 py-3 transition touch-manipulation sm:px-4 ${
                           !notif.is_read 
                             ? 'bg-[var(--app-success)]/10 hover:bg-[var(--app-success)]/20' 
                             : 'hover:bg-[var(--app-bg-soft)]'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start justify-between gap-3">
                           <div 
-                            className="flex-1 cursor-pointer"
+                            className="min-w-0 flex-1 cursor-pointer"
                             onClick={() => {
                               if (!notif.is_read) handleMarkAsRead(notif.id, notif.is_read);
                               if (notif.link) window.location.href = notif.link;
                             }}
                           >
-                            <p className="line-clamp-2 text-sm font-medium text-[var(--app-text)]">
+                            <p className="line-clamp-2 break-words text-sm font-medium text-[var(--app-text)]">
                               {getNotificationTitle(notif)}
                             </p>
-                            <p className="mt-1 text-xs text-[var(--app-text-soft)]">
+                            <p className="mt-1 break-words text-xs text-[var(--app-text-soft)]">
                               {notif.message || 'Aucun message'}
                             </p>
                             <p className="mt-1 text-xs text-[var(--app-text-soft)] opacity-70">
                               {formatTime(notif.created_at)}
                             </p>
                           </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                          <div className="flex items-center gap-1.5 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
                             {!notif.is_read && (
                               <button
                                 onClick={() => handleMarkAsRead(notif.id, notif.is_read)}
-                                className="p-1 text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+                                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--app-text-soft)] transition hover:bg-[var(--app-bg-soft)] hover:text-[var(--app-text)]"
                                 title="Marquer comme lu"
                               >
-                                <div className="w-2 h-2 bg-[var(--app-text-soft)] rounded-full" />
+                                <div className="h-2.5 w-2.5 rounded-full bg-[var(--app-text-soft)]" />
                               </button>
                             )}
                             <button
                               onClick={() => handleDeleteNotification(notif.id)}
-                              className="p-1 text-[var(--app-text-soft)] transition hover:text-[var(--app-danger)]"
+                              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--app-text-soft)] transition hover:bg-[var(--app-danger)]/10 hover:text-[var(--app-danger)]"
                               title="Supprimer"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         </div>
@@ -303,17 +306,17 @@ const Header = ({ onMenuClick }) => {
                 </div>
 
                 {notifications.length > 0 && (
-                  <div className="flex justify-between border-t border-[var(--app-border)]/70 bg-[var(--app-bg-soft)] px-4 py-2">
+                  <div className="flex flex-col gap-2 border-t border-[var(--app-border)]/70 bg-[var(--app-bg-soft)] px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-4">
                     <button
                       onClick={handleMarkAllAsRead}
                       disabled={unreadCount === 0}
-                      className="text-xs font-medium text-[var(--app-text-soft)] transition hover:text-[var(--app-text)] disabled:text-[var(--app-border)]"
+                      className="w-full rounded-lg px-3 py-2 text-left text-xs font-medium text-[var(--app-text-soft)] transition hover:bg-[var(--app-bg-soft)] hover:text-[var(--app-text)] disabled:text-[var(--app-border)] sm:w-auto sm:px-0 sm:py-0 sm:text-left"
                     >
                       Tout marquer comme lu
                     </button>
                     <Link
                       to="/notifications"
-                      className="text-xs font-medium text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+                      className="inline-flex w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-2 text-xs font-semibold text-[var(--app-text)] transition hover:bg-[var(--app-bg-soft)] hover:text-[var(--app-text)] sm:w-auto"
                       onClick={() => setShowNotifications(false)}
                     >
                       Voir tout

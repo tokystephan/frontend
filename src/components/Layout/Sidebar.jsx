@@ -13,6 +13,7 @@ import {
   UserCog,
   Users,
 } from 'lucide-react'
+import { getUserRole } from '../../utils/roleRedirect'
 import toast from 'react-hot-toast'
 import { logoutUser } from '../../store/slices/authSlice'
 import { setSidebarOpen } from '../../store/slices/uiSlice'
@@ -97,7 +98,7 @@ const Sidebar = () => {
   const sidebarOpen = useSelector((state) => state.ui.sidebarOpen)
   const [collapsed, setCollapsed] = useState(false)
 
-  const role = getNormalizedRole(user?.role || user?.roleName)
+  const role = getUserRole(user) || 'assistant'
   const links = useMemo(() => LINKS_BY_ROLE[role] || LINKS_BY_ROLE.assistant, [role])
 
   const closeSidebarOnMobile = () => {
@@ -151,13 +152,8 @@ const Sidebar = () => {
         <div className={`relative z-10 flex items-center border-b border-[var(--app-border)] p-4 ${collapsed ? 'justify-center' : 'justify-between'}`}>
           {!collapsed && (
             <div className="flex items-center gap-3">
-              <div className="logo-cube">
-                <div className="face-front"></div>
-                <div className="face-back"></div>
-                <div className="face-left"></div>
-                <div className="face-right"></div>
-                <div className="face-top"></div>
-                <div className="face-bottom"></div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--app-primary)] text-xs font-bold text-white shadow-sm">
+                AR
               </div>
               <div className="flex flex-col leading-tight">
                 <span className="text-[var(--app-primary)] font-semibold text-sm tracking-tight">
@@ -198,8 +194,9 @@ const Sidebar = () => {
           </div>
           {!collapsed && (
             <div className="min-w-0">
+              <p className="truncate text-xs text-[var(--app-text-soft)]">Bienvenue</p>
               <p className="truncate text-sm font-medium text-[var(--app-text)]">
-                {user?.first_name || ''} {user?.last_name || ''}
+                {user?.first_name || user?.email || user?.username || 'Utilisateur'}
               </p>
               <p className="truncate text-xs text-[var(--app-text-soft)]">{getRoleLabel(role)}</p>
             </div>

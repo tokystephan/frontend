@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useInterviews } from '../../../hooks/useInterviews';
 import entretienService from '../../../services/entretienService';
 import api from '../../../services/api';
@@ -8,6 +8,7 @@ import DashboardLink from '../../Common/DashboardLink';
 export default function InterviewForm({ onClose, onCreated }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { createInterview, updateInterview } = useInterviews();
   const [form, setForm] = useState({
     candidature_id: '', candidat_id: '', type_entretien: 'rh', title: '', description: '',
@@ -19,6 +20,23 @@ export default function InterviewForm({ onClose, onCreated }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
+
+  const inputClassName = 'w-full max-w-full min-w-0 min-h-[48px] rounded-2xl sm:rounded-3xl border border-slate-200 bg-slate-50 px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200';
+  const selectClassName = `${inputClassName} appearance-none pr-10`;
+  const preselectedApplicationId = location.state?.applicationId || new URLSearchParams(location.search).get('application_id');
+
+  const normalizeParticipantIds = (value) => {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((item) => Number(item))
+      .filter((item) => !Number.isNaN(item));
+  };
+
+  const getApplicationLabel = (application) => {
+    const candidateName = [application?.candidate?.first_name, application?.candidate?.last_name].filter(Boolean).join(' ').trim();
+    const postTitle = application?.post?.title || application?.poste?.title || 'N/A';
+    return `${candidateName || 'N/A'} - ${postTitle}`;
+  };
 
   const validateForm = () => {
     const validationErrors = {};
@@ -89,8 +107,26 @@ export default function InterviewForm({ onClose, onCreated }) {
             location: data.location,
             meeting_link: data.meeting_link,
             phone_number: data.phone_number,
-            participants: data.participants?.map(p => Number(p.user_id)) || [],
+            participants: normalizeParticipantIds(data.participants?.map((p) => p.user_id || p.id)),
           });
+        } else if (preselectedApplicationId) {
+          const selectedApplication = applicationsData.find((item) => String(item.id) === String(preselectedApplicationId));
+          if (selectedApplication) {
+            const candidateId = selectedApplication?.candidate_id || selectedApplication?.candidate?.id || '';
+            const candidateName = [selectedApplication?.candidate?.first_name, selectedApplication?.candidate?.last_name].filter(Boolean).join(' ').trim();
+            setForm((prev) => ({
+              ...prev,
+              candidature_id: String(selectedApplication.id),
+              candidat_id: candidateId,
+              title: prev.title || `Entretien - ${candidateName || 'Candidat'}`,
+              participants: prev.participants.length > 0 ? prev.participants : normalizeParticipantIds([
+                selectedApplication?.creator?.id,
+                selectedApplication?.created_by,
+                selectedApplication?.assigned_to_user_id,
+                selectedApplication?.assigned_to?.id,
+              ]),
+            }));
+          }
         }
       } catch (err) {
         console.error('Erreur lors du chargement des données:', err);
@@ -99,7 +135,7 @@ export default function InterviewForm({ onClose, onCreated }) {
       }
     };
     fetchData();
-  }, [id]);
+  }, [id, preselectedApplicationId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -107,7 +143,19 @@ export default function InterviewForm({ onClose, onCreated }) {
     if (name === 'candidature_id') {
       const selectedApplication = candidatures.find((item) => String(item.id) === String(value));
       const candidateId = selectedApplication?.candidate_id || selectedApplication?.candidate?.id || '';
-      setForm({ ...form, candidature_id: value, candidat_id: candidateId });
+      const candidateName = [selectedApplication?.candidate?.first_name, selectedApplication?.candidate?.last_name].filter(Boolean).join(' ').trim();
+      setForm({
+        ...form,
+        candidature_id: value,
+        candidat_id: candidateId,
+        title: form.title || `Entretien - ${candidateName || 'Candidat'}`,
+        participants: form.participants.length > 0 ? form.participants : normalizeParticipantIds([
+          selectedApplication?.creator?.id,
+          selectedApplication?.created_by,
+          selectedApplication?.assigned_to_user_id,
+          selectedApplication?.assigned_to?.id,
+        ]),
+      });
       setErrors(prev => ({ ...prev, candidature_id: undefined, candidate_id: undefined }));
       return;
     }
@@ -117,9 +165,12 @@ export default function InterviewForm({ onClose, onCreated }) {
   };
 
   const toggleParticipant = (uid) => {
+    const normalizedUid = Number(uid);
     setForm(prev => ({
       ...prev,
-      participants: prev.participants.includes(uid) ? prev.participants.filter(id => id !== uid) : [...prev.participants, uid]
+      participants: prev.participants.includes(normalizedUid)
+        ? prev.participants.filter((id) => Number(id) !== normalizedUid)
+        : [...prev.participants, normalizedUid]
     }));
     setErrors(prev => ({ ...prev, participants: undefined }));
   };
@@ -190,14 +241,14 @@ export default function InterviewForm({ onClose, onCreated }) {
   };
 
   return (
-    <div className="relative max-w-3xl mx-auto p-6">
+    <div className="relative mx-auto w-full max-w-screen-2xl overflow-x-hidden p-3 sm:p-4 lg:p-6">
       <div className="absolute -right-16 -top-16 w-40 h-40 rounded-full bg-[#38bdf8]/30 blur-3xl pointer-events-none" />
       <div className="absolute -left-16 bottom-10 w-48 h-48 rounded-full bg-[#2563eb]/10 blur-3xl pointer-events-none" />
-      <div className="relative bg-white border border-slate-200 rounded-[32px] shadow-[0_24px_80px_rgba(15,23,42,0.12)] p-8">
-        <div className="mb-8">
-          <p className="text-sm uppercase tracking-[0.25em] text-[#2563eb] font-semibold">Planification</p>
-          <h1 className="mt-3 text-3xl font-bold text-slate-950">{id ? 'Modifier' : 'Créer'} un entretien</h1>
-          <p className="mt-2 text-slate-600">Utilisez ce formulaire pour organiser un entretien avec le candidat et votre équipe.</p>
+      <div className="relative overflow-x-hidden rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_24px_80px_rgba(15,23,42,0.12)] sm:rounded-[32px] sm:p-6 lg:p-8">
+        <div className="mb-6 sm:mb-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#2563eb] sm:text-sm">Planification</p>
+          <h1 className="mt-3 text-2xl font-bold text-slate-950 sm:text-3xl">{id ? 'Modifier' : 'Créer'} un entretien</h1>
+          <p className="mt-2 text-sm text-slate-600 sm:text-base">Utilisez ce formulaire pour organiser un entretien avec le candidat et votre équipe.</p>
         </div>
         <div className="mb-6">
           <DashboardLink />
@@ -209,7 +260,7 @@ export default function InterviewForm({ onClose, onCreated }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="w-full max-w-full space-y-5 overflow-x-hidden">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Candidature *</label>
             <select
@@ -217,19 +268,19 @@ export default function InterviewForm({ onClose, onCreated }) {
               value={form.candidature_id}
               onChange={handleChange}
               required
-              className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200"
+              className={selectClassName}
             >
-              <option value="">Sélectionner</option>
+              <option value="">Pour faire un choix</option>
               {(Array.isArray(candidatures) ? candidatures : []).map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.candidate?.first_name || 'N/A'} {c.candidate?.last_name || ''} - {c.post?.title || 'N/A'}
+                  {getApplicationLabel(c)}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Type *</label>
-            <select name="type_entretien" value={form.type_entretien} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200">
+            <select name="type_entretien" value={form.type_entretien} onChange={handleChange} className={selectClassName}>
               <option value="telephonique">Téléphonique</option>
               <option value="rh">RH</option>
               <option value="technique">Technique</option>
@@ -238,23 +289,23 @@ export default function InterviewForm({ onClose, onCreated }) {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Titre *</label>
-            <input name="title" value={form.title} onChange={handleChange} required className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+            <input name="title" value={form.title} onChange={handleChange} required className={inputClassName} />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Début *</label>
-              <input type="datetime-local" name="start_datetime" value={form.start_datetime} onChange={handleChange} required className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+              <input type="datetime-local" name="start_datetime" value={form.start_datetime} onChange={handleChange} required className={`${inputClassName} [color-scheme:light]`} />
               {errors.start_datetime && <p className="mt-2 text-sm text-rose-600">{errors.start_datetime}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Fin *</label>
-              <input type="datetime-local" name="end_datetime" value={form.end_datetime} onChange={handleChange} required className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+              <input type="datetime-local" name="end_datetime" value={form.end_datetime} onChange={handleChange} required className={`${inputClassName} [color-scheme:light]`} />
               {errors.end_datetime && <p className="mt-2 text-sm text-rose-600">{errors.end_datetime}</p>}
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Lieu *</label>
-            <select name="location_type" value={form.location_type} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-200">
+            <select name="location_type" value={form.location_type} onChange={handleChange} className={selectClassName}>
               <option value="visio">Visio (Google Meet)</option>
               <option value="presentiel">Présentiel</option>
               <option value="telephone">Téléphone</option>
@@ -263,27 +314,27 @@ export default function InterviewForm({ onClose, onCreated }) {
           {form.location_type === 'visio' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Lien Google Meet *</label>
-              <input name="meeting_link" value={form.meeting_link} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+              <input name="meeting_link" value={form.meeting_link} onChange={handleChange} className={inputClassName} />
               {errors.meeting_link && <p className="mt-2 text-sm text-rose-600">{errors.meeting_link}</p>}
             </div>
           )}
           {form.location_type === 'presentiel' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Adresse / Salle</label>
-              <input name="location" value={form.location} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+              <input name="location" value={form.location} onChange={handleChange} className={inputClassName} />
               {errors.location && <p className="mt-2 text-sm text-rose-600">{errors.location}</p>}
             </div>
           )}
           {form.location_type === 'telephone' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">Numéro *</label>
-              <input name="phone_number" value={form.phone_number} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+              <input name="phone_number" value={form.phone_number} onChange={handleChange} className={inputClassName} />
               {errors.phone_number && <p className="mt-2 text-sm text-rose-600">{errors.phone_number}</p>}
             </div>
           )}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Description (optionnelle)</label>
-            <textarea name="description" rows="3" value={form.description} onChange={handleChange} className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-200" />
+            <textarea name="description" rows="3" value={form.description} onChange={handleChange} className={`${inputClassName} min-h-[112px] resize-y`} />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Participants * ({form.participants.length})</label>
@@ -303,7 +354,7 @@ export default function InterviewForm({ onClose, onCreated }) {
                     <label key={u.id} className="flex items-center gap-3 p-3 cursor-pointer hover:bg-slate-50 transition">
                       <input
                         type="checkbox"
-                        checked={form.participants.includes(u.id)}
+                        checked={form.participants.includes(Number(u.id))}
                         onChange={() => toggleParticipant(u.id)}
                         className="h-4 w-4 text-sky-600 rounded border-slate-300"
                       />
@@ -319,10 +370,10 @@ export default function InterviewForm({ onClose, onCreated }) {
             {errors.participants && <p className="mt-2 text-sm text-rose-600">{errors.participants}</p>}
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <button type="button" onClick={() => (onClose ? onClose() : navigate('/interviews'))} className="w-full sm:w-auto px-5 py-3 rounded-3xl border border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100 transition">
+            <button type="button" onClick={() => (onClose ? onClose() : navigate('/interviews'))} className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-slate-700 transition hover:bg-slate-100 sm:w-auto sm:rounded-3xl sm:px-5 sm:py-3">
               Annuler
             </button>
-            <button type="submit" disabled={loading} className="w-full sm:w-auto px-5 py-3 rounded-3xl bg-gradient-to-r from-[#2563eb] to-[#22d3ee] text-white shadow-[0_18px_40px_rgba(37,99,235,0.25)] hover:shadow-[0_24px_50px_rgba(37,99,235,0.35)] transition">
+            <button type="submit" disabled={loading} className="w-full rounded-2xl bg-gradient-to-r from-[#2563eb] to-[#22d3ee] px-4 py-2.5 text-white shadow-[0_18px_40px_rgba(37,99,235,0.25)] transition hover:shadow-[0_24px_50px_rgba(37,99,235,0.35)] sm:w-auto sm:rounded-3xl sm:px-5 sm:py-3">
               {loading ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </div>

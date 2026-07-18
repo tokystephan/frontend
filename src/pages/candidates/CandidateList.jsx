@@ -38,7 +38,6 @@ const CandidateList = () => {
         source: source || undefined,
       })
     );
-    setPage(1);
   }, [dispatch, debouncedSearch, source]);
 
   const totalPages = Math.max(1, Math.ceil(items.length / DEFAULT_PAGE_SIZE));
@@ -139,7 +138,7 @@ const CandidateList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -256,7 +255,54 @@ const CandidateList = () => {
           </div>
         ) : (
           <>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="space-y-4 md:hidden">
+              {pagedRows.map((row) => (
+                <div key={row.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-base font-semibold text-gray-900">{row.last_name || '-'} {row.first_name || ''}</p>
+                      <p className="text-sm text-gray-500">{row.email || 'Email non renseigné'}</p>
+                    </div>
+                    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                      {SOURCE_LABELS[row.source] || row.source || '-'}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
+                    <div>
+                      <span className="font-medium text-gray-900">Téléphone :</span> {row.phone || '-'}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => navigate(`/candidates/${row.id}`)}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                    >
+                      <Eye className="w-4 h-4" /> Voir
+                    </button>
+                    {canManageCandidates && (
+                      <button
+                        onClick={() => navigate(`/candidates/${row.id}/edit`)}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+                      >
+                        <Edit className="w-4 h-4" /> Modifier
+                      </button>
+                    )}
+                    {canManageCandidates && (
+                      <button
+                        onClick={() => openDeleteModal(row)}
+                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm font-medium text-red-700 hover:bg-red-100 transition"
+                      >
+                        <Trash2 className="w-4 h-4" /> Supprimer
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -309,7 +355,6 @@ const CandidateList = () => {
                               </button>
                             )}
 
-                            {/* ✅ BOUTON SUPPRIMER (Admin uniquement) */}
                             {canManageCandidates && (
                               <button
                                 onClick={() => openDeleteModal(row)}
@@ -376,7 +421,7 @@ const CandidateList = () => {
             {deleteModal.forceDelete && deleteModal.dependencies.length > 0 && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
                 <p className="text-sm text-yellow-800 flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-yellow-600" />
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-yellow-600" />
                   <span>
                     <strong>⚠️ Attention :</strong> Ce candidat a des données associées :
                     <ul className="list-disc list-inside mt-1 text-yellow-700">

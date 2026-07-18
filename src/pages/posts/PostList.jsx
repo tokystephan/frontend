@@ -137,6 +137,61 @@ const PostList = () => {
     },
   ];
 
+  const renderPostMobileRow = (row) => (
+    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-base font-semibold text-gray-900">{row.title}</p>
+          <p className="text-xs text-gray-500">ID: #{row.id}</p>
+        </div>
+        <span className="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-800">
+          {row.contractType?.name || '-'}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-gray-400" />
+          <span>{row.department?.name || '-'}</span>
+        </div>
+        <div>
+          <span className="font-medium text-gray-900">Statut :</span> {row.status}
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => navigate(`/posts/${row.id}`)}
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+        >
+          <Eye className="w-4 h-4" /> Voir
+        </button>
+        {canManagePosts && (
+          <button
+            onClick={() => navigate(`/posts/${row.id}/edit`)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
+          >
+            <Edit className="w-4 h-4" /> Modifier
+          </button>
+        )}
+        {canArchivePosts && !row.is_archived && (
+          <button
+            onClick={() => setToArchive(row.id)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 bg-red-50 text-sm font-medium text-red-700 hover:bg-red-100 transition"
+          >
+            <Archive className="w-4 h-4" /> Archiver
+          </button>
+        )}
+        {canArchivePosts && row.is_archived && (
+          <button
+            onClick={() => setToRestore(row.id)}
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition"
+          >
+            <RotateCcw className="w-4 h-4" /> Restaurer
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   const handleArchive = async () => {
     if (!toArchive) return;
     try {
@@ -165,7 +220,7 @@ const PostList = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-screen-2xl mx-auto">
         
         {/* ==================== EN-TÊTE ==================== */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
@@ -234,18 +289,41 @@ const PostList = () => {
                 Filtres
               </button>
               
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="">Tous les statuts</option>
-                {POST_STATUSES.map((item) => (
-                  <option key={item} value={item}>
-                    {item === 'ouvert' ? '📢 Ouvert' : item === 'ferme' ? '🔒 Fermé' : item === 'archive' ? '🗄️ Archivé' : '⏳ En attente'}
-                  </option>
-                ))}
-              </select>
+                <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setStatus('')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    status === ''
+                      ? 'bg-gray-900 text-white border border-gray-900'
+                      : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  Tous
+                </button>
+                {POST_STATUSES.map((item) => {
+                  const statusColors = {
+                    ouvert: 'bg-green-100 text-green-900 border-green-300 hover:bg-green-200',
+                    ferme: 'bg-slate-200 text-slate-900 border-slate-300 hover:bg-slate-300',
+                    archive: 'bg-gray-300 text-gray-900 border-gray-400 hover:bg-gray-400',
+                  };
+                  const color = statusColors[item] || 'bg-gray-100 text-gray-900 border-gray-300';
+                  const label = item === 'ouvert' ? '📢 Ouvert' : item === 'ferme' ? '🔒 Fermé' : item === 'archive' ? '🗄️ Archivé' : item;
+                  
+                  return (
+                    <button
+                      key={item}
+                      onClick={() => setStatus(item)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                        status === item
+                          ? `${color} ring-2 ring-offset-2 ring-gray-400`
+                          : `${color} opacity-70 hover:opacity-100`
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -313,6 +391,7 @@ const PostList = () => {
             rows={items || []}    
             loading={loading} 
             emptyLabel="Aucun poste trouvé." 
+            renderMobileRow={renderPostMobileRow}
           />
         </div>
 

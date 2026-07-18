@@ -11,6 +11,11 @@ import Login from '../pages/auth/Login';
 import GoogleCallback from '../pages/auth/GoogleCallback';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
+import About from '../pages/About';
+import Features from '../pages/Features';
+import Contact from '../pages/Contact';
+import TermsOfUse from '../pages/TermsOfUse';
+import Confidentiality from '../pages/Confidentiality';
 
 // Pages protégées - Dashboard
 import Dashboard from '../pages/dashboard/Dashboard';
@@ -51,10 +56,12 @@ import Notifications from '../pages/notifications/Notifications';
 // Pages protégées - Admin
 import StatisticsDashboard from '../pages/statistics/StatisticsDashboard';
 import UserManagement from '../pages/admin/UserManagement';
+import { getRedirectPath, getUserRole } from '../utils/roleRedirect';
 
 const AppRouter = () => {
   const dispatch = useDispatch();
   const { initialized, isAuthenticated, user } = useSelector((state) => state.auth);
+  const userRole = getUserRole(user);
   const {
     roleName,
     canManagePosts,
@@ -93,6 +100,11 @@ const AppRouter = () => {
       <Route path="/auth/google/success" element={<GoogleCallback />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/features" element={<Features />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/terms" element={<TermsOfUse />} />
+      <Route path="/privacy" element={<Confidentiality />} />
 
       {/* ============================================ */}
       {/* ROUTES PROTÉGÉES - DASHBOARDS */}
@@ -110,10 +122,10 @@ const AppRouter = () => {
       <Route
         path="/dashboard/admin"
         element={
-          isAuthenticated && user?.role === 'admin' ? (
+          isAuthenticated && roleName === 'admin' ? (
             <AdminDashboard />
           ) : (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={isAuthenticated ? getRedirectPath(user) : '/login'} replace />
           )
         }
       />
@@ -122,10 +134,10 @@ const AppRouter = () => {
       <Route
         path="/dashboard/assistant"
         element={
-          isAuthenticated && user?.role === 'assistant' ? (
+          isAuthenticated && roleName === 'assistant' ? (
             <AssistantDashboard />
           ) : (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={isAuthenticated ? getRedirectPath(user) : '/login'} replace />
           )
         }
       />
@@ -138,10 +150,10 @@ const AppRouter = () => {
       <Route
         path="/dashboard/manager"
         element={
-          isAuthenticated && user?.role === 'manager' ? (
+          isAuthenticated && roleName === 'manager' ? (
             <ConsultantDashboard />
           ) : (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={isAuthenticated ? getRedirectPath(user) : '/login'} replace />
           )
         }
       />
@@ -150,10 +162,10 @@ const AppRouter = () => {
       <Route
         path="/dashboard/direction"
         element={
-          isAuthenticated && user?.role === 'direction' ? (
+          isAuthenticated && roleName === 'direction' ? (
             <DirectionDashboard />
           ) : (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={isAuthenticated ? getRedirectPath(user) : '/login'} replace />
           )
         }
       />
@@ -325,7 +337,7 @@ const AppRouter = () => {
       <Route
         path="/admin/users"
         element={
-          isAuthenticated && user?.role === 'admin' ? (
+          isAuthenticated && userRole === 'admin' ? (
             <UserManagement />
           ) : (
             <Navigate to="/dashboard" replace />
@@ -337,7 +349,7 @@ const AppRouter = () => {
       <Route
         path="/statistics"
         element={
-          isAuthenticated && (user?.role === 'admin' || user?.role === 'direction') ? (
+          isAuthenticated && (userRole === 'admin' || userRole === 'direction') ? (
             <StatisticsDashboard />
           ) : (
             <Navigate to="/dashboard" replace />

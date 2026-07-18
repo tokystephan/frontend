@@ -168,17 +168,17 @@ const PostForm = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
-        <div className="mx-auto max-w-5xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/60 border border-slate-200">
-          <h1 className="text-2xl font-semibold text-slate-900 mb-4">Impossible de charger le formulaire</h1>
-          <p className="text-sm text-slate-600 mb-6">{error || 'Une erreur est survenue pendant le chargement des données.'}</p>
+      <div className="min-h-screen bg-(--app-bg-soft) p-6">
+        <div className="mx-auto max-w-5xl rounded-3xl bg-(--app-surface) p-8 shadow-xl shadow-slate-200/60 border border-(--app-border)">
+          <h1 className="text-2xl font-semibold text-(--app-text) mb-4">Impossible de charger le formulaire</h1>
+          <p className="text-sm text-(--app-text-soft) mb-6">{error || 'Une erreur est survenue pendant le chargement des données.'}</p>
           <button
             type="button"
             onClick={() => {
               dispatch(fetchDepartments());
               dispatch(fetchContractTypes());
             }}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-lg bg-(--app-primary) px-4 py-2 text-sm font-semibold text-white hover:bg-(--app-primary-hover)"
           >
             Réessayer
           </button>
@@ -189,17 +189,17 @@ const PostForm = () => {
 
   if (departments.length === 0 || contractTypes.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
-        <div className="mx-auto max-w-5xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/60 border border-slate-200">
-          <h1 className="text-2xl font-semibold text-slate-900 mb-4">Aucune donnée disponible</h1>
-          <p className="text-sm text-slate-600 mb-6">Vérifiez que les départements et les types de contrat existent dans le backend.</p>
+      <div className="min-h-screen bg-(--app-bg-soft) p-4 sm:p-6">
+        <div className="mx-auto max-w-4xl rounded-4xl bg-(--app-surface) p-8 shadow-[0_28px_60px_rgba(45,65,85,0.08)] border border-(--app-border)">
+          <h1 className="text-2xl font-semibold text-(--app-text) mb-4">Aucune donnée disponible</h1>
+          <p className="text-sm text-(--app-text-soft) mb-6">Vérifiez que les départements et les types de contrat existent dans le backend.</p>
           <button
             type="button"
             onClick={() => {
               dispatch(fetchDepartments());
               dispatch(fetchContractTypes());
             }}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            className="rounded-xl bg-(--app-primary) px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-(--app-primary-hover)"
           >
             Réessayer
           </button>
@@ -209,113 +209,114 @@ const PostForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
-      <div className="mx-auto max-w-5xl rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/60 border border-slate-200">
-        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Gestion des postes</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">
-              {editing ? 'Modifier un poste' : 'Créer un nouveau poste'}
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <DashboardLink />
-            <button
-              type="button"
-              onClick={() => navigate('/posts')}
-              className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
-            >
-              Retour à la liste
-            </button>
+    <div className="min-h-screen bg-(--app-bg-soft) p-4 sm:p-6">
+      <div className="max-w-screen-2xl mx-auto space-y-6">
+        <div className="rounded-4xl border border-(--app-border) bg-(--app-surface) p-8 shadow-[0_28px_60px_rgba(45,65,85,0.08)]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-(--app-text-soft)">Gestion des postes</p>
+              <h1 className="mt-3 text-3xl font-semibold text-(--app-text)">
+                {editing ? 'Modifier un poste' : 'Créer un nouveau poste'}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-(--app-text-soft)">
+                Complétez les informations du poste avant de l’enregistrer. Les champs obligatoires sont indiqués par un astérisque.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <DashboardLink />
+              <button
+                type="button"
+                onClick={() => navigate('/posts')}
+                className="inline-flex items-center justify-center rounded-full border border-(--app-border) bg-(--app-bg) px-4 py-2 text-sm font-semibold text-(--app-text) transition hover:bg-(--app-bg-soft)"
+              >
+                Retour à la liste
+              </button>
+            </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-        {/* Intitulé */}
-        <InputField
-          label="Intitulé"
-          name="title"
-          value={form.title}
-          onChange={handleChange}
-          required
-          error={formErrors.title?.[0]}
-        />
+        <div className="rounded-4xl border border-(--app-border) bg-(--app-surface) p-8 shadow-[0_28px_60px_rgba(45,65,85,0.08)]">
+          <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
+            <InputField
+              label="Intitulé"
+              name="title"
+              value={form.title}
+              onChange={handleChange}
+              required
+              error={formErrors.title?.[0]}
+            />
 
-        {/* Département (ID) */}
-        <SelectField
-          label="Département"
-          name="department_id"
-          value={form.department_id}
-          onChange={handleChange}
-          options={departmentOptions}
-          placeholder="Sélectionner un département"
-          required
-          error={formErrors.department_id?.[0]}
-        />
+            <SelectField
+              label="Département"
+              name="department_id"
+              value={form.department_id}
+              onChange={handleChange}
+              options={departmentOptions}
+              placeholder="Sélectionner un département"
+              required
+              error={formErrors.department_id?.[0]}
+            />
 
-        {/* Type de contrat (ID) */}
-        <SelectField
-          label="Type de contrat"
-          name="contract_type_id"
-          value={form.contract_type_id}
-          onChange={handleChange}
-          options={contractTypeOptions}
-          placeholder="Sélectionner un type de contrat"
-          required
-          error={formErrors.contract_type_id?.[0]}
-        />
+            <SelectField
+              label="Type de contrat"
+              name="contract_type_id"
+              value={form.contract_type_id}
+              onChange={handleChange}
+              options={contractTypeOptions}
+              placeholder="Sélectionner un type de contrat"
+              required
+              error={formErrors.contract_type_id?.[0]}
+            />
 
-        {/* Statut */}
-        <SelectField
-          label="Statut"
-          name="status"
-          value={form.status}
-          onChange={handleChange}
-          options={statusOptions}
-          required
-          error={formErrors.status?.[0]}
-        />
+            <SelectField
+              label="Statut"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              options={statusOptions}
+              required
+              error={formErrors.status?.[0]}
+            />
 
-        {/* Description */}
-        <label className="md:col-span-2 block space-y-1">
-          <span className="text-sm font-medium text-slate-700">Description</span>
-          <textarea
-            name="description"
-            rows={5}
-            value={form.description}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          />
-        </label>
+            <label className="md:col-span-2 block space-y-2">
+              <span className="text-sm font-medium text-(--app-text)">Description</span>
+              <textarea
+                name="description"
+                rows={5}
+                value={form.description}
+                onChange={handleChange}
+                className="w-full rounded-2xl border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm text-(--app-text) outline-none transition focus:border-(--app-primary) focus:ring-2 focus:ring-(--app-primary)/20"
+              />
+            </label>
 
-        {/* Prérequis */}
-        <label className="md:col-span-2 block space-y-1">
-          <span className="text-sm font-medium text-slate-700">Prérequis</span>
-          <textarea
-            name="requirements"
-            rows={3}
-            value={form.requirements}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-          />
-        </label>
+            <label className="md:col-span-2 block space-y-2">
+              <span className="text-sm font-medium text-(--app-text)">Prérequis</span>
+              <textarea
+                name="requirements"
+                rows={4}
+                value={form.requirements}
+                onChange={handleChange}
+                className="w-full rounded-2xl border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm text-(--app-text) outline-none transition focus:border-(--app-primary) focus:ring-2 focus:ring-(--app-primary)/20"
+              />
+            </label>
 
-        <div className="md:col-span-2 flex flex-wrap gap-2">
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            {editing ? 'Enregistrer' : 'Créer'}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/posts')}
-            className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-          >
-            Annuler
-          </button>
+            <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-2xl bg-(--app-primary) px-6 py-3 text-sm font-semibold text-white transition hover:bg-(--app-primary-hover)"
+              >
+                {editing ? 'Enregistrer le poste' : 'Créer le poste'}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/posts')}
+                className="inline-flex items-center justify-center rounded-2xl border border-(--app-border) bg-(--app-bg) px-6 py-3 text-sm font-semibold text-(--app-text) transition hover:bg-(--app-bg-soft)"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
         </div>
-        </form>
       </div>
     </div>
   );
