@@ -481,21 +481,21 @@ export default function Login() {
       `}</style>
 
       <div className="relative z-10 flex min-h-screen flex-col px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex items-center justify-between rounded-2xl bg-white px-6 py-4 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-lg">
+        <header className="flex items-center justify-between gap-3 rounded-2xl bg-white px-3 py-3 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-lg sm:px-6 sm:py-4">
           <Link to="/" className="flex items-center gap-3">
             <img src="/akanjo.jpg" alt="Akanjo" className="h-10 w-auto object-contain" />
           </Link>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex gap-2 sm:gap-3">
             <Link
               to="/login"
-              className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
+              className="rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 sm:px-5 sm:text-sm"
             >
               Se connecter
             </Link>
             <Link
               to="/register"
-              className="rounded-xl border border-white/30 bg-black/70 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:bg-black/80"
+              className="rounded-xl border border-white/30 bg-black/70 px-3 py-2.5 text-xs font-semibold text-white shadow-lg shadow-black/20 transition hover:bg-black/80 sm:px-5 sm:text-sm"
             >
               S&apos;inscrire
             </Link>
@@ -503,7 +503,7 @@ export default function Login() {
         </header>
 
         <main className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-md rounded-4xl bg-white/10 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:p-10 lg:p-12">
+          <div className="w-full max-w-md rounded-4xl bg-white/10 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:p-10 lg:p-12">
 
           <div className="text-center mb-8 animate-fadeInUp text-white">
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-blue-200">
@@ -528,7 +528,7 @@ export default function Login() {
               ...cardTilt,
             }}
           >
-            <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+            <div className="relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-4 shadow-[0_30px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-8">
 
               {/* Barre décorative */}
               <div className="absolute left-8 right-8 top-0 h-0.5 rounded-b-full bg-blue-400/80" />

@@ -22,11 +22,18 @@ html,
 body,
 #root {
   min-height: 100%;
+  width: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
   background: linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-soft) 100%);
   color: var(--app-text);
   font-family: 'Segoe UI', 'Noto Sans', sans-serif;
@@ -102,6 +109,16 @@ select,
 button {
   max-width: 100%;
   min-width: 0;
+  font: inherit;
+}
+
+button,
+[role='button'],
+a,
+select,
+input[type='checkbox'],
+input[type='radio'] {
+  -webkit-tap-highlight-color: transparent;
 }
 
 table {
@@ -119,6 +136,46 @@ td {
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Shared responsive safeguards.  They keep each route usable on narrow phones
+   without forcing desktop content to shrink beyond readability. */
+.table-responsive,
+.overflow-x-auto {
+  scrollbar-width: thin;
+}
+
+@media (max-width: 639px) {
+  body {
+    font-size: 15px;
+  }
+
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Prevent large desktop-style spacing from consuming the whole viewport. */
+  .rounded-4xl {
+    border-radius: 1.25rem;
+  }
+
+  .card-3d:hover,
+  .btn-3d:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ===========================================

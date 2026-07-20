@@ -21,7 +21,7 @@ const DataTable = ({ columns, rows, rowKey = 'id', loading = false, emptyLabel =
         </div>
       )}
 
-      <div className={`${renderMobileRow ? 'hidden md:block' : ''} overflow-x-auto rounded-lg border border-slate-200 bg-white`}>
+      <div className={`${renderMobileRow ? 'hidden md:block' : ''} table-responsive rounded-lg border border-slate-200 bg-white`}>
         <table className="min-w-full text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase text-slate-500">
             <tr>

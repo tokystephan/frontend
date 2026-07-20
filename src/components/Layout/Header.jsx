@@ -9,9 +9,10 @@ import {
   deleteNotificationThunk 
 } from '../../store/slices/notificationSlice';
 import { logoutUser } from '../../store/slices/authSlice';
-import { Bell, User, LogOut, ChevronDown, Menu, X, Trash2 } from 'lucide-react';
+import { Bell, User, LogOut, ChevronDown, Menu, X, Trash2, Search, BriefcaseBusiness, Users, FileText, Loader2 } from 'lucide-react';
 import Avatar from '../Common/Avatar';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
@@ -26,19 +27,69 @@ const Header = ({ onMenuClick }) => {
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
   const userMenuRef = useRef(null);
   const notificationsRef = useRef(null);
+  const searchRef = useRef(null);
+  const knownNotificationIdsRef = useRef(new Set());
 
-  // Chargement initial + polling toutes les 30 secondes
+  // Chaque session recharge ses propres notifications. Les IDs sont comparés pour
+  // signaler immédiatement l'arrivée d'une nouvelle notification sans dupliquer les toasts initiaux.
   useEffect(() => {
-    dispatch(fetchNotifications());
-    dispatch(fetchUnreadCount());
-    const interval = setInterval(() => {
-      dispatch(fetchNotifications());
+    const refreshNotifications = async (announceNew = false) => {
+      const action = await dispatch(fetchNotifications());
       dispatch(fetchUnreadCount());
-    }, 30000);
+
+      if (fetchNotifications.fulfilled.match(action)) {
+        const received = action.payload?.data || [];
+        const ids = new Set(received.map((notification) => String(notification.id)));
+        if (announceNew && knownNotificationIdsRef.current.size > 0) {
+          const newNotifications = received.filter(
+            (notification) => !knownNotificationIdsRef.current.has(String(notification.id))
+          );
+          newNotifications.slice(0, 3).forEach((notification) => {
+            toast(notification.title || notification.message || 'Nouvelle notification');
+          });
+        }
+        knownNotificationIdsRef.current = ids;
+      }
+    };
+
+    refreshNotifications();
+    const interval = setInterval(() => {
+      refreshNotifications(true);
+    }, 10000);
     return () => clearInterval(interval);
   }, [dispatch]);
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (query.length < 2) {
+      setSearchResults(null);
+      setSearchLoading(false);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const response = await api.get('/search', { params: { q: query }, signal: controller.signal });
+        setSearchResults(response.data?.data || {});
+      } catch (error) {
+        if (error.code !== 'ERR_CANCELED') setSearchResults({});
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [searchQuery]);
 
   // Fermer les menus au clic extérieur
   useEffect(() => {
@@ -48,6 +99,9 @@ const Header = ({ onMenuClick }) => {
       }
       if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
         setShowNotifications(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchResults(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -165,12 +219,25 @@ const Header = ({ onMenuClick }) => {
     return notif.title || titles[notif.type] || 'Notification';
   };
 
+  const searchSections = [
+    { key: 'posts', label: 'Postes', icon: BriefcaseBusiness, to: (item) => `/posts/${item.id}`, text: (item) => item.title },
+    { key: 'candidates', label: 'Candidats', icon: Users, to: (item) => `/candidates/${item.id}`, text: (item) => `${item.first_name || ''} ${item.last_name || ''}`.trim() || item.email },
+    { key: 'applications', label: 'Candidatures', icon: FileText, to: (item) => `/applications/${item.id}`, text: (item) => `${item.candidate?.first_name || ''} ${item.candidate?.last_name || ''}`.trim() || `Candidature #${item.id}`, detail: (item) => item.post?.title },
+  ];
+
+  const hasSearchResults = searchSections.some(({ key }) => searchResults?.[key]?.length);
+  const openSearchResult = (path) => {
+    setSearchQuery('');
+    setSearchResults(null);
+    navigate(path);
+  };
+
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-[var(--app-border)] bg-[var(--app-surface)] backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-full items-center justify-between px-3 sm:px-4">
+        <div className="mx-auto flex h-16 w-full max-w-full items-center justify-between px-2 sm:px-4">
         
         {/* Logo et menu mobile */}
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           {onMenuClick && (
             <button
               onClick={onMenuClick}
@@ -184,14 +251,46 @@ const Header = ({ onMenuClick }) => {
             <img 
               src="/akanjo.jpg" 
               alt="Akanjo Logo" 
-              className="h-15 object-contain transition-transform duration-200 group-hover:scale-105" 
+              className="h-13 w-19 object-contain transition-transform duration-200 group-hover:scale-105 sm:h-14 sm:w-25"
               title="Accueil"
             />
           </Link>
         </div>
 
+        {/* Recherche globale */}
+        <div ref={searchRef} className="relative mx-1 min-w-0 flex-1 sm:mx-4 sm:max-w-xl">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--app-text-soft)]" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            onFocus={() => searchQuery.trim().length >= 2 && setSearchResults((current) => current || {})}
+            placeholder="Rechercher..."
+            aria-label="Recherche globale"
+            className="h-10 w-full rounded-lg border border-[var(--app-border)] bg-[var(--app-bg-soft)] py-2 pl-9 pr-9 text-sm text-[var(--app-text)] outline-none transition focus:border-[var(--app-primary)] focus:bg-[var(--app-surface)]"
+          />
+          {searchLoading && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--app-text-soft)]" />}
+          {searchResults && (
+            <div className="absolute left-0 right-0 top-full z-[70] mt-2 max-h-[min(70vh,30rem)] overflow-y-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2 shadow-2xl">
+              {hasSearchResults ? searchSections.map(({ key, label, icon: Icon, to, text, detail }) => (
+                searchResults[key]?.length ? (
+                  <div key={key} className="py-1">
+                    <p className="px-2 py-1 text-xs font-semibold uppercase tracking-wide text-[var(--app-text-soft)]">{label}</p>
+                    {searchResults[key].map((item) => (
+                      <button key={item.id} type="button" onClick={() => openSearchResult(to(item))} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-[var(--app-bg-soft)]">
+                        <Icon className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
+                        <span className="min-w-0"><span className="block truncate text-sm text-[var(--app-text)]">{text(item)}</span>{detail?.(item) && <span className="block truncate text-xs text-[var(--app-text-soft)]">{detail(item)}</span>}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null
+              )) : <p className="px-3 py-5 text-center text-sm text-[var(--app-text-soft)]">Aucun résultat pour « {searchQuery.trim()} »</p>}
+            </div>
+          )}
+        </div>
+
         {/* Actions droites */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-4">
           
           {/* NOTIFICATIONS */}
           <div className="relative" ref={notificationsRef}>

@@ -11,6 +11,7 @@ import Login from '../pages/auth/Login';
 import GoogleCallback from '../pages/auth/GoogleCallback';
 import Register from '../pages/auth/Register';
 import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
 import About from '../pages/About';
 import Features from '../pages/Features';
 import Contact from '../pages/Contact';
@@ -100,6 +101,7 @@ const AppRouter = () => {
       <Route path="/auth/google/success" element={<GoogleCallback />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/about" element={<About />} />
       <Route path="/features" element={<Features />} />
       <Route path="/contact" element={<Contact />} />

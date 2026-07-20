@@ -103,7 +103,7 @@ const AppLayout = ({ children }) => {
   const content = children ?? <Outlet />
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[var(--app-bg)]">
+    <div className="relative min-h-screen overflow-x-clip bg-[var(--app-bg)]">
       <style>{`
         @keyframes dashboardFloatOne {
           0% { transform: translate3d(0, 0, 0) scale(1); }
@@ -130,11 +130,11 @@ const AppLayout = ({ children }) => {
 
       <div className="relative z-10">
         <Header onMenuClick={handleMenuClick} />
-        <div className="mx-auto flex w-full max-w-full flex-col gap-4 px-3 pb-4 pt-20 sm:px-4 md:flex-row md:items-start">
+        <div className="mx-auto flex w-full max-w-full flex-col gap-3 px-2 pb-3 pt-19 sm:gap-4 sm:px-4 sm:pb-4 sm:pt-20 md:flex-row md:items-start">
           <div className="md:flex-shrink-0">
             <Sidebar />
           </div>
-          <main className="min-w-0 flex-1 w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-lg card-3d sm:p-5">
+          <main className="w-full min-w-0 flex-1 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3 shadow-lg card-3d sm:p-5">
             {content}
           </main>
         </div>

@@ -93,9 +93,10 @@ const CandidateList = () => {
     setDeleteModal(prev => ({ ...prev, loading: true }));
     
     try {
-      const url = forceDelete 
-        ? `/admin/candidates/${candidate.id}/force`
-        : `/admin/candidates/${candidate.id}`;
+      // La même ressource API gère la suppression et les contraintes de base.
+      // Les anciennes URL /admin/candidates n'étaient accessibles qu'à
+      // l'admin, alors que l'assistant RH peut aussi gérer les candidats.
+      const url = `/candidates/${candidate.id}`;
       
       await axios.delete(url);
       
